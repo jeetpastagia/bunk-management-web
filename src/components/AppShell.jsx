@@ -73,15 +73,15 @@ export default function AppShell() {
         <Outlet />
       </main>
 
-      {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 glass-raised border-t border-[var(--color-border)] flex justify-around py-2 z-20">
-        {NAV_ITEMS.slice(0, 5).map(({ to, label, icon: Icon }) => (
+      {/* Mobile bottom nav: solid (not glass) so scrolling content behind it never bleeds through, and scrollable so all screens are reachable, not just the first 5. */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--color-bg)] border-t border-[var(--color-border)] flex overflow-x-auto py-2 z-20">
+        {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-0.5 px-2 py-1 text-[10px] font-medium ${
+              `flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] font-medium shrink-0 ${
                 isActive ? 'text-[var(--color-brand-soft)]' : 'text-[var(--color-text-faint)]'
               }`
             }
