@@ -13,6 +13,10 @@ export default function Subjects() {
   const [showBulk, setShowBulk] = useState(false);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [backfillId, setBackfillId] = useState(null);
+  const [backfillCount, setBackfillCount] = useState('');
+  const [backfillBusy, setBackfillBusy] = useState(false);
+  const [backfillResult, setBackfillResult] = useState(null);
 
   const load = async (q) => {
     const res = await api.listSubjects(q);
@@ -70,6 +74,26 @@ export default function Subjects() {
     if (!confirm('Delete this subject? This also removes its timetable slots and attendance records.')) return;
     await api.deleteSubject(id);
     await load(search);
+  };
+
+  const openBackfill = (id) => {
+    setBackfillId(id);
+    setBackfillCount('');
+    setBackfillResult(null);
+  };
+
+  const handleBackfill = async (e) => {
+    e.preventDefault();
+    setBackfillBusy(true);
+    setError('');
+    try {
+      const result = await api.backfillBunks(backfillId, Number(backfillCount));
+      setBackfillResult(result);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBackfillBusy(false);
+    }
   };
 
   // Bulk add: one subject per line as "Name, Code, Faculty, Credits, WeeklyCount"
@@ -159,15 +183,49 @@ export default function Subjects() {
         ) : (
           <div className="flex flex-col divide-y divide-[var(--color-border-soft)]">
             {subjects.map((s) => (
-              <div key={s._id} className="flex items-center justify-between py-3 gap-4 flex-wrap">
-                <div className="min-w-0">
-                  <p className="font-medium">{s.name} {s.code && <span className="text-[var(--color-text-faint)] font-normal">· {s.code}</span>}</p>
-                  <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{s.facultyName || 'No faculty set'} {s.weeklyLectureCount ? `· ${s.weeklyLectureCount}/week` : ''}</p>
+              <div key={s._id} className="py-3">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="min-w-0">
+                    <p className="font-medium">{s.name} {s.code && <span className="text-[var(--color-text-faint)] font-normal">· {s.code}</span>}</p>
+                    <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{s.facultyName || 'No faculty set'} {s.weeklyLectureCount ? `· ${s.weeklyLectureCount}/week` : ''}</p>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={() => openBackfill(backfillId === s._id ? null : s._id)}>
+                      {backfillId === s._id ? 'Close' : 'Backfill bunks'}
+                    </Button>
+                    <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={() => handleEdit(s)}>Edit</Button>
+                    <Button variant="danger" className="!px-3 !py-1.5 text-xs" onClick={() => handleDelete(s._id)}>Delete</Button>
+                  </div>
                 </div>
-                <div className="flex gap-2 shrink-0">
-                  <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={() => handleEdit(s)}>Edit</Button>
-                  <Button variant="danger" className="!px-3 !py-1.5 text-xs" onClick={() => handleDelete(s._id)}>Delete</Button>
-                </div>
+
+                {backfillId === s._id && (
+                  <div className="mt-3 p-4 rounded-xl bg-white/5 border border-[var(--color-border)]">
+                    <p className="text-xs text-[var(--color-text-muted)] mb-3">
+                      Don't remember which exact days you bunked {s.name}? Just enter how many lectures you bunked so far —
+                      every other past lecture for this subject (since the semester started) will be marked attended automatically.
+                    </p>
+                    <form onSubmit={handleBackfill} className="flex items-end gap-2 flex-wrap">
+                      <Input
+                        label="Lectures bunked"
+                        type="number"
+                        min={0}
+                        value={backfillCount}
+                        onChange={(e) => setBackfillCount(e.target.value)}
+                        required
+                        className="w-32"
+                      />
+                      <Button type="submit" disabled={backfillBusy} className="!px-3 !py-2.5 text-sm">
+                        {backfillBusy ? 'Applying…' : 'Apply'}
+                      </Button>
+                    </form>
+                    {backfillResult && (
+                      <p className="text-xs text-[var(--color-safe)] mt-3">
+                        Done — {backfillResult.totalResolved} past lecture(s) resolved: {backfillResult.bunked} bunked, {backfillResult.attended} attended.
+                        {backfillResult.clamped && ` (You entered more bunks than lectures found, so it was capped at ${backfillResult.bunked}.)`}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>

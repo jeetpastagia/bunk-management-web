@@ -8,6 +8,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
+  const [staySignedIn, setStaySignedIn] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -16,7 +17,7 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      const user = await login(mobileNumber, password);
+      const user = await login(mobileNumber, password, staySignedIn);
       navigate(user.setupCompleted ? '/' : '/setup');
     } catch (err) {
       setError(err.message);
@@ -49,7 +50,11 @@ export default function Login() {
             required
           />
           {error && <p className="text-[var(--color-danger)] text-sm">{error}</p>}
-          <div className="flex justify-end -mt-2">
+          <div className="flex items-center justify-between -mt-2">
+            <label className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
+              <input type="checkbox" checked={staySignedIn} onChange={(e) => setStaySignedIn(e.target.checked)} />
+              Stay signed in
+            </label>
             <Link to="/forgot-password" className="text-xs text-[var(--color-brand-soft)] hover:underline">
               Forgot password?
             </Link>

@@ -4,8 +4,13 @@
 // points straight at the deployed backend, e.g. https://your-api.onrender.com/api
 const BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
+const TOKEN_KEY = 'bunkmanager_token';
+
+// "Stay signed in" (checked, default) keeps the token in localStorage, so it
+// survives closing the browser. Unchecked stores it in sessionStorage
+// instead, so it's gone once the tab/browser closes.
 function getToken() {
-  return localStorage.getItem('bunkmanager_token');
+  return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
 }
 
 async function request(path, { method = 'GET', body, auth = true } = {}) {
@@ -70,6 +75,8 @@ export const api = {
   addExtraLecture: (payload) => request('/attendance/extra', { method: 'POST', body: payload }),
   markLecture: (id, status) => request(`/attendance/${id}`, { method: 'PATCH', body: { status } }),
   markDay: (date, status) => request('/attendance/mark-day', { method: 'POST', body: { date, status } }),
+  backfillBunks: (subjectId, bunked) =>
+    request(`/attendance/subjects/${subjectId}/backfill-bunks`, { method: 'POST', body: { bunked } }),
   overview: () => request('/attendance/overview'),
   subjectAnalytics: () => request('/attendance/subjects'),
   facultyAnalytics: () => request('/attendance/faculty'),
@@ -96,10 +103,17 @@ export const api = {
   markAllNotificationsRead: () => request('/notifications/read-all', { method: 'PATCH' }),
 };
 
-export function setToken(token) {
-  localStorage.setItem('bunkmanager_token', token);
+export function setToken(token, staySignedIn = true) {
+  if (staySignedIn) {
+    localStorage.setItem(TOKEN_KEY, token);
+    sessionStorage.removeItem(TOKEN_KEY);
+  } else {
+    sessionStorage.setItem(TOKEN_KEY, token);
+    localStorage.removeItem(TOKEN_KEY);
+  }
 }
 export function clearToken() {
-  localStorage.removeItem('bunkmanager_token');
+  localStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
 }
 export { getToken };

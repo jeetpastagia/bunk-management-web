@@ -28,9 +28,9 @@ export function AuthProvider({ children }) {
     loadMe();
   }, [loadMe]);
 
-  const login = async (mobileNumber, password) => {
+  const login = async (mobileNumber, password, staySignedIn = true) => {
     const { token, user } = await api.login({ mobileNumber, password });
-    setToken(token);
+    setToken(token, staySignedIn);
     setUser(user);
     return user;
   };
