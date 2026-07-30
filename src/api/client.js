@@ -51,6 +51,7 @@ export const api = {
   resetPassword: (payload) =>
     request('/auth/forgot-password/reset', { method: 'POST', body: payload, auth: false }),
   me: () => request('/auth/me'),
+  updateProfile: (payload) => request('/auth/me', { method: 'PUT', body: payload }),
   logout: (fcmToken) => request('/auth/logout', { method: 'POST', body: fcmToken ? { fcmToken } : undefined }),
 
   // Setup

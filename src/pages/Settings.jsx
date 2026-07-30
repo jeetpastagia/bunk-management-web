@@ -14,6 +14,31 @@ export default function Settings() {
   const [pushEnabled, setPushEnabled] = useState(Boolean(getStoredFcmToken()));
   const [pushBusy, setPushBusy] = useState(false);
   const [pushError, setPushError] = useState('');
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({ studentName: user?.studentName || '', mobileNumber: user?.mobileNumber || '', collegeName: user?.collegeName || '' });
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileError, setProfileError] = useState('');
+
+  const openProfileEdit = () => {
+    setProfileForm({ studentName: user?.studentName || '', mobileNumber: user?.mobileNumber || '', collegeName: user?.collegeName || '' });
+    setProfileError('');
+    setEditingProfile(true);
+  };
+
+  const handleProfileSave = async (e) => {
+    e.preventDefault();
+    setProfileError('');
+    setProfileSaving(true);
+    try {
+      await api.updateProfile(profileForm);
+      await refresh();
+      setEditingProfile(false);
+    } catch (err) {
+      setProfileError(err.message);
+    } finally {
+      setProfileSaving(false);
+    }
+  };
 
   const handleTogglePush = async () => {
     setPushBusy(true);
@@ -61,13 +86,31 @@ export default function Settings() {
       </div>
 
       <Card>
-        <h2 className="font-display font-semibold mb-4">Profile</h2>
-        <div className="grid sm:grid-cols-2 gap-4 text-sm">
-          <Field label="Student name" value={user?.studentName} />
-          <Field label="College" value={user?.collegeName} />
-          <Field label="Mobile number" value={user?.mobileNumber} />
-          <Field label="Required attendance" value={`${user?.requiredAttendancePercentage}%`} />
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display font-semibold">Profile</h2>
+          <Button variant="ghost" onClick={() => (editingProfile ? setEditingProfile(false) : openProfileEdit())}>
+            {editingProfile ? 'Cancel' : 'Edit'}
+          </Button>
         </div>
+
+        {editingProfile ? (
+          <form onSubmit={handleProfileSave} className="flex flex-col gap-3">
+            <div className="grid sm:grid-cols-2 gap-3">
+              <Input label="Student name" value={profileForm.studentName} onChange={(e) => setProfileForm((f) => ({ ...f, studentName: e.target.value }))} />
+              <Input label="Mobile number" value={profileForm.mobileNumber} onChange={(e) => setProfileForm((f) => ({ ...f, mobileNumber: e.target.value }))} />
+              <Input label="College" value={profileForm.collegeName} onChange={(e) => setProfileForm((f) => ({ ...f, collegeName: e.target.value }))} />
+            </div>
+            {profileError && <p className="text-[var(--color-danger)] text-sm">{profileError}</p>}
+            <Button type="submit" disabled={profileSaving} className="self-start">{profileSaving ? 'Saving…' : 'Save changes'}</Button>
+          </form>
+        ) : (
+          <div className="grid sm:grid-cols-2 gap-4 text-sm">
+            <Field label="Student name" value={user?.studentName} />
+            <Field label="College" value={user?.collegeName} />
+            <Field label="Mobile number" value={user?.mobileNumber} />
+            <Field label="Required attendance" value={`${user?.requiredAttendancePercentage}%`} />
+          </div>
+        )}
       </Card>
 
       <Card>

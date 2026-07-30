@@ -8,3 +8,12 @@ createRoot(document.getElementById('root')).render(
     <App />
   </StrictMode>,
 )
+
+// Registering this unconditionally (not just when push notifications are
+// enabled) is what makes Chrome/Edge/Android offer the install/"Add to
+// Home Screen" prompt for the site.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}

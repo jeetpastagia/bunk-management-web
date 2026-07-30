@@ -1,0 +1,13 @@
+{
+  "name": "Bunk Manager",
+  "short_name": "Bunk Manager",
+  "description": "Track Smart. Bunk Smarter.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0E14",
+  "theme_color": "#0B0E14",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

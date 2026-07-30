@@ -67,8 +67,15 @@ export default function AppShell() {
       </aside>
 
       <main className="flex-1 min-w-0 p-4 md:p-8 pb-24 md:pb-8">
-        <div className="flex justify-end mb-4 md:mb-6">
+        <div className="flex justify-end items-center gap-2 mb-4 md:mb-6">
           <NotificationBell />
+          <button
+            onClick={handleLogout}
+            aria-label="Log out"
+            className="md:hidden w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors"
+          >
+            <LogoutIcon className="w-4.5 h-4.5" />
+          </button>
         </div>
         <Outlet />
       </main>

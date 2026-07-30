@@ -1,5 +1,5 @@
 export function Card({ children, className = '', raised = false }) {
-  return <div className={`${raised ? 'glass-raised' : 'glass'} rounded-2xl p-5 ${className}`}>{children}</div>;
+  return <div className={`${raised ? 'glass-raised' : 'glass'} rounded-2xl p-5 transition-colors duration-200 ${className}`}>{children}</div>;
 }
 
 export function Button({ children, variant = 'primary', className = '', ...props }) {
@@ -10,7 +10,7 @@ export function Button({ children, variant = 'primary', className = '', ...props
   };
   return (
     <button
-      className={`px-4 py-2.5 rounded-xl font-medium text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${variants[variant]} ${className}`}
+      className={`px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none ${variants[variant]} ${className}`}
       {...props}
     >
       {children}
