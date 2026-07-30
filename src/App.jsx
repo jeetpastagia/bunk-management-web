@@ -15,6 +15,7 @@ import CalendarPage from './pages/CalendarPage';
 import Analytics from './pages/Analytics';
 import Tools from './pages/Tools';
 import Holidays from './pages/Holidays';
+import Rooms from './pages/Rooms';
 import Settings from './pages/Settings';
 
 function RequireAuth({ children }) {
@@ -66,6 +67,7 @@ export default function App() {
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/tools" element={<Tools />} />
             <Route path="/holidays" element={<Holidays />} />
+            <Route path="/rooms" element={<Rooms />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
 

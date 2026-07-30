@@ -93,6 +93,13 @@ export const api = {
   createHoliday: (payload) => request('/holidays', { method: 'POST', body: payload }),
   deleteHoliday: (id) => request(`/holidays/${id}`, { method: 'DELETE' }),
 
+  // Rooms
+  listRooms: () => request('/rooms'),
+  createRoom: (name) => request('/rooms', { method: 'POST', body: { name } }),
+  joinRoom: (code) => request('/rooms/join', { method: 'POST', body: { code } }),
+  leaveRoom: (id) => request(`/rooms/${id}/leave`, { method: 'POST' }),
+  deleteRoom: (id) => request(`/rooms/${id}`, { method: 'DELETE' }),
+
   // Notifications
   registerFcmToken: (fcmToken) => request('/notifications/register-token', { method: 'POST', body: { fcmToken } }),
   removeFcmToken: (fcmToken) => request('/notifications/token', { method: 'DELETE', body: { fcmToken } }),
