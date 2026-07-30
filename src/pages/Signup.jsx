@@ -3,12 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Card, Button, Input } from '../components/ui';
 import { AuthLayout } from './Login';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 
 export default function Signup() {
   const { signup } = useAuth();
   const navigate = useNavigate();
   const [studentName, setStudentName] = useState('');
-  const [mobileNumber, setMobileNumber] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,7 +19,7 @@ export default function Signup() {
     setError('');
     setLoading(true);
     try {
-      await signup(mobileNumber, password, studentName);
+      await signup(identifier, password, studentName);
       navigate('/setup');
     } catch (err) {
       setError(err.message);
@@ -33,9 +34,20 @@ export default function Signup() {
         <h1 className="font-display text-2xl font-semibold mb-1">Create your account</h1>
         <p className="text-[var(--color-text-muted)] text-sm mb-6">Start tracking lecture-wise attendance in minutes.</p>
 
+        {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+          <>
+            <GoogleSignInButton onError={setError} />
+            <div className="flex items-center gap-3 my-5">
+              <div className="h-px flex-1 bg-[var(--color-border)]" />
+              <span className="text-xs text-[var(--color-text-faint)]">or</span>
+              <div className="h-px flex-1 bg-[var(--color-border)]" />
+            </div>
+          </>
+        )}
+
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <Input label="Your name" placeholder="e.g. Aditi Sharma" value={studentName} onChange={(e) => setStudentName(e.target.value)} required />
-          <Input label="Mobile number" type="tel" placeholder="9876543210" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} required />
+          <Input label="Email or mobile number" placeholder="you@example.com or 9876543210" value={identifier} onChange={(e) => setIdentifier(e.target.value)} required />
           <Input
             label="Password"
             type="password"

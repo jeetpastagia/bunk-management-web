@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Card, Button, Input } from '../components/ui';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [mobileNumber, setMobileNumber] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [staySignedIn, setStaySignedIn] = useState(true);
   const [error, setError] = useState('');
@@ -17,7 +18,7 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      const user = await login(mobileNumber, password, staySignedIn);
+      const user = await login(identifier, password, staySignedIn);
       navigate(user.setupCompleted ? '/' : '/setup');
     } catch (err) {
       setError(err.message);
@@ -32,13 +33,23 @@ export default function Login() {
         <h1 className="font-display text-2xl font-semibold mb-1">Welcome back</h1>
         <p className="text-[var(--color-text-muted)] text-sm mb-6">Log in to keep tracking your attendance.</p>
 
+        {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+          <>
+            <GoogleSignInButton staySignedIn={staySignedIn} onError={setError} />
+            <div className="flex items-center gap-3 my-5">
+              <div className="h-px flex-1 bg-[var(--color-border)]" />
+              <span className="text-xs text-[var(--color-text-faint)]">or</span>
+              <div className="h-px flex-1 bg-[var(--color-border)]" />
+            </div>
+          </>
+        )}
+
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <Input
-            label="Mobile number"
-            type="tel"
-            placeholder="9876543210"
-            value={mobileNumber}
-            onChange={(e) => setMobileNumber(e.target.value)}
+            label="Email or mobile number"
+            placeholder="you@example.com or 9876543210"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
             required
           />
           <Input

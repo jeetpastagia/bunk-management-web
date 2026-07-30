@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../api/client';
 import { Card, Button, Spinner, Select } from '../components/ui';
+import { runTimetableOcr, buildGridFromWords, matchSubjectName } from '../lib/timetableOcr';
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 const DAY_LABELS = { monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu', friday: 'Fri', saturday: 'Sat' };
@@ -13,6 +14,9 @@ export default function Timetable() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [ocrBusy, setOcrBusy] = useState(false);
+  const [ocrResult, setOcrResult] = useState(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     (async () => {
@@ -58,6 +62,41 @@ export default function Timetable() {
     }
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file later
+    if (!file) return;
+
+    setOcrBusy(true);
+    setOcrResult(null);
+    setMessage('');
+    try {
+      const { words } = await runTimetableOcr(file);
+      const { cells } = buildGridFromWords(words);
+
+      let matched = 0;
+      let unmatched = 0;
+      setGrid((g) => {
+        const next = { ...g };
+        for (const [key, text] of Object.entries(cells)) {
+          const subjectId = matchSubjectName(text, subjects);
+          if (subjectId) {
+            next[key] = subjectId;
+            matched += 1;
+          } else {
+            unmatched += 1;
+          }
+        }
+        return next;
+      });
+      setOcrResult({ matched, unmatched, total: matched + unmatched });
+    } catch (err) {
+      setMessage(`Couldn't read that image: ${err.message}`);
+    } finally {
+      setOcrBusy(false);
+    }
+  };
+
   if (loading) return <div className="flex justify-center py-20"><Spinner size={32} /></div>;
 
   if (subjects.length === 0) {
@@ -76,8 +115,31 @@ export default function Timetable() {
           <h1 className="font-display text-2xl font-semibold">Timetable</h1>
           <p className="text-[var(--color-text-muted)] text-sm mt-1">Assign a subject to each lecture slot.</p>
         </div>
-        <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving…' : 'Save timetable'}</Button>
+        <div className="flex gap-2">
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+          <Button variant="ghost" onClick={() => fileInputRef.current?.click()} disabled={ocrBusy}>
+            {ocrBusy ? 'Reading image…' : 'Upload timetable photo'}
+          </Button>
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving…' : 'Save timetable'}</Button>
+        </div>
       </div>
+
+      {ocrBusy && (
+        <Card className="flex items-center gap-3">
+          <Spinner size={18} />
+          <p className="text-sm text-[var(--color-text-muted)]">Reading your timetable photo — this runs right in your browser and can take a few seconds.</p>
+        </Card>
+      )}
+
+      {ocrResult && (
+        <Card className="border-[var(--color-brand)]/30 bg-[var(--color-brand)]/8">
+          <p className="text-sm">
+            Filled in <span className="font-semibold">{ocrResult.matched}</span> of {ocrResult.total} detected slot(s) automatically.
+            {ocrResult.unmatched > 0 && ` ${ocrResult.unmatched} slot(s) were detected but couldn't be matched to a subject — check the grid below and fill in any gaps or corrections.`}
+            {' '}Always double-check before saving — photo OCR isn't perfect.
+          </p>
+        </Card>
+      )}
 
       {message && <p className="text-sm text-[var(--color-brand-soft)]">{message}</p>}
 

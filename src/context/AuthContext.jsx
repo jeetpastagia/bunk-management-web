@@ -28,16 +28,23 @@ export function AuthProvider({ children }) {
     loadMe();
   }, [loadMe]);
 
-  const login = async (mobileNumber, password, staySignedIn = true) => {
-    const { token, user } = await api.login({ mobileNumber, password });
+  const login = async (identifier, password, staySignedIn = true) => {
+    const { token, user } = await api.login({ identifier, password });
     setToken(token, staySignedIn);
     setUser(user);
     return user;
   };
 
-  const signup = async (mobileNumber, password, studentName) => {
-    const { token, user } = await api.signup({ mobileNumber, password, studentName });
+  const signup = async (identifier, password, studentName) => {
+    const { token, user } = await api.signup({ identifier, password, studentName });
     setToken(token);
+    setUser(user);
+    return user;
+  };
+
+  const loginWithGoogle = async (credential, staySignedIn = true) => {
+    const { token, user } = await api.googleAuth(credential);
+    setToken(token, staySignedIn);
     setUser(user);
     return user;
   };
@@ -56,7 +63,7 @@ export function AuthProvider({ children }) {
   const refresh = loadMe;
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, login, signup, logout, refresh }}>
+    <AuthContext.Provider value={{ user, setUser, loading, login, signup, loginWithGoogle, logout, refresh }}>
       {children}
     </AuthContext.Provider>
   );

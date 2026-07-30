@@ -22,11 +22,19 @@ export default function BunkGauge({ percentage = 0, requiredPercentage = 75, siz
     return [cx + radius * Math.cos(a), cy - radius * Math.sin(a)];
   };
 
+  // This gauge only ever spans a half-circle (0% -> 180°, 100% -> 0°), so
+  // the angular span between any two points on it is at most 180° — the
+  // SVG large-arc-flag must therefore always be 0 (the "minor" arc IS the
+  // correct path here). The previous `> 50` check compared a PERCENTAGE
+  // span against a threshold meant for a full 360° circle, so any segment
+  // over 50% (e.g. the danger zone up to a 75% requirement, or the
+  // progress fill past 50%) incorrectly looped the long way around a full
+  // circle instead of staying on the semicircle — that's the doubled/
+  // misplaced arc artifact.
   const arcPath = (fromPct, toPct, radius = r) => {
     const [x1, y1] = point(fromPct, radius);
     const [x2, y2] = point(toPct, radius);
-    const large = toPct - fromPct > 50 ? 1 : 0;
-    return `M ${x1} ${y1} A ${radius} ${radius} 0 ${large} 1 ${x2} ${y2}`;
+    return `M ${x1} ${y1} A ${radius} ${radius} 0 0 1 ${x2} ${y2}`;
   };
 
   const strokeW = size * 0.065;
