@@ -8,6 +8,20 @@
     <meta name="theme-color" content="#0B0E14" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bunk Manager — Track Smart. Bunk Smarter.</title>
+    <script>
+      // Applied before paint so the page never flashes the wrong theme.
+      // The DB (synced once /auth/me loads, see ThemeContext) is the
+      // source of truth for logged-in users — this is just the instant
+      // local cache so first paint is already correct.
+      (function () {
+        try {
+          var pref = localStorage.getItem('bunkmanager_theme');
+          if (pref === 'light' || pref === 'dark') {
+            document.documentElement.setAttribute('data-theme', pref);
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -2,17 +2,20 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../api/client';
 import { Card, Button, Spinner, Select } from '../components/ui';
 import { runTimetableOcr, buildGridFromWords, matchSubjectName } from '../lib/timetableOcr';
+import { useConfirm } from '../hooks/useConfirm';
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 const DAY_LABELS = { monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu', friday: 'Fri', saturday: 'Sat' };
 const MAX_LECTURES = 8;
 
 export default function Timetable() {
+  const { confirm, dialog } = useConfirm();
   const [subjects, setSubjects] = useState([]);
   const [grid, setGrid] = useState({}); // `${day}-${lectureNumber}` -> subjectId
   const [weekly, setWeekly] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const [message, setMessage] = useState('');
   const [ocrBusy, setOcrBusy] = useState(false);
   const [ocrResult, setOcrResult] = useState(null);
@@ -59,6 +62,35 @@ export default function Timetable() {
       setMessage(err.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleClearAll = async () => {
+    const ok = await confirm({
+      title: 'Remove all subjects from this timetable?',
+      description: 'This action cannot be undone.',
+      confirmLabel: 'Delete All',
+    });
+    if (!ok) return;
+
+    setClearing(true);
+    setMessage('');
+    try {
+      // A full-replace with an empty array — scoped server-side to this
+      // user's current semester, so it can never touch another user's or
+      // another room's timetable. If this user owns a room, the empty
+      // template propagates to every member automatically (same sync path
+      // as any other edit); it never touches other rooms they've joined.
+      await api.setTimetable([]);
+      setGrid({});
+      setOcrResult(null);
+      const weeklyRes = await api.weeklyAnalysis();
+      setWeekly(weeklyRes);
+      setMessage('Timetable cleared.');
+    } catch (err) {
+      setMessage(err.message);
+    } finally {
+      setClearing(false);
     }
   };
 
@@ -110,15 +142,19 @@ export default function Timetable() {
 
   return (
     <div className="flex flex-col gap-6">
+      {dialog}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="font-display text-2xl font-semibold">Timetable</h1>
           <p className="text-[var(--color-text-muted)] text-sm mt-1">Assign a subject to each lecture slot.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
           <Button variant="ghost" onClick={() => fileInputRef.current?.click()} disabled={ocrBusy}>
             {ocrBusy ? 'Reading image…' : 'Upload timetable photo'}
+          </Button>
+          <Button variant="danger" onClick={handleClearAll} disabled={clearing || Object.keys(grid).length === 0}>
+            {clearing ? 'Clearing…' : 'Clear timetable'}
           </Button>
           <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving…' : 'Save timetable'}</Button>
         </div>
@@ -183,7 +219,7 @@ export default function Timetable() {
           <p className="text-sm text-[var(--color-text-muted)] mb-3">{weekly.totalWeeklyLectures} lectures per week, total</p>
           <div className="flex flex-wrap gap-2">
             {Object.entries(weekly.subjectWise).map(([name, count]) => (
-              <span key={name} className="px-3 py-1.5 rounded-full bg-white/6 text-sm">
+              <span key={name} className="px-3 py-1.5 rounded-full bg-[var(--tint-6)] text-sm">
                 <span className="font-medium">{name}</span> <span className="mono-num text-[var(--color-text-muted)]">× {count}</span>
               </span>
             ))}

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { Card, Button, Input, Spinner, EmptyState } from '../components/ui';
+import { useConfirm } from '../hooks/useConfirm';
 
 const emptyForm = { name: '', code: '', facultyName: '', credits: '', weeklyLectureCount: '' };
 
 export default function Subjects() {
+  const { confirm, dialog } = useConfirm();
   const [subjects, setSubjects] = useState(null);
   const [search, setSearch] = useState('');
   const [form, setForm] = useState(emptyForm);
@@ -71,7 +73,12 @@ export default function Subjects() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this subject? This also removes its timetable slots and attendance records.')) return;
+    const ok = await confirm({
+      title: 'Delete this subject?',
+      description: 'This also removes its timetable slots and attendance records. This action cannot be undone.',
+      confirmLabel: 'Delete subject',
+    });
+    if (!ok) return;
     await api.deleteSubject(id);
     await load(search);
   };
@@ -129,6 +136,7 @@ export default function Subjects() {
 
   return (
     <div className="flex flex-col gap-6">
+      {dialog}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="font-display text-2xl font-semibold">Subjects</h1>
@@ -148,7 +156,7 @@ export default function Subjects() {
           <p className="text-xs text-[var(--color-text-muted)] mb-3">One subject per line: Name, Code, Faculty, Credits, Weekly lectures</p>
           <form onSubmit={handleBulk} className="flex flex-col gap-3">
             <textarea
-              className="bg-white/5 border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 outline-none focus:border-[var(--color-brand)] font-mono text-sm min-h-32"
+              className="bg-[var(--tint-5)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 outline-none focus:border-[var(--color-brand)] font-mono text-sm min-h-32"
               placeholder={'DBMS, DB301, Dr. Rao, 4, 4\nJava, CS204, Prof. Iyer, 3, 5'}
               value={bulkText}
               onChange={(e) => setBulkText(e.target.value)}
@@ -199,7 +207,7 @@ export default function Subjects() {
                 </div>
 
                 {backfillId === s._id && (
-                  <div className="mt-3 p-4 rounded-xl bg-white/5 border border-[var(--color-border)]">
+                  <div className="mt-3 p-4 rounded-xl bg-[var(--tint-5)] border border-[var(--color-border)]">
                     <p className="text-xs text-[var(--color-text-muted)] mb-3">
                       Don't remember which exact days you bunked {s.name}? Just enter how many lectures you bunked so far —
                       every other past lecture for this subject (since the semester started) will be marked attended automatically.

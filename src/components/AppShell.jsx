@@ -43,7 +43,7 @@ export default function AppShell() {
               end={to === '/'}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  isActive ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand-soft)]' : 'text-[var(--color-text-muted)] hover:bg-white/5 hover:text-[var(--color-text)]'
+                  isActive ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand-soft)]' : 'text-[var(--color-text-muted)] hover:bg-[var(--tint-5)] hover:text-[var(--color-text)]'
                 }`
               }
             >
@@ -54,7 +54,7 @@ export default function AppShell() {
         </nav>
 
         <div className="pt-4 border-t border-[var(--color-border-soft)] flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-white/8 flex items-center justify-center font-display font-semibold text-sm">
+          <div className="w-9 h-9 rounded-full bg-[var(--tint-8)] flex items-center justify-center font-display font-semibold text-sm">
             {(user?.studentName || 'U')[0].toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
@@ -73,7 +73,7 @@ export default function AppShell() {
           <button
             onClick={handleLogout}
             aria-label="Log out"
-            className="md:hidden w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors"
+            className="md:hidden w-10 h-10 rounded-xl bg-[var(--tint-5)] hover:bg-[var(--tint-10)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors"
           >
             <LogoutIcon className="w-4.5 h-4.5" />
           </button>

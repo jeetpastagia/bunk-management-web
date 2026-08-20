@@ -66,7 +66,7 @@ export default function BunkGauge({ percentage = 0, requiredPercentage = 75, siz
         </defs>
 
         {/* Track */}
-        <path d={arcPath(0, 100)} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={strokeW} strokeLinecap="round" />
+        <path d={arcPath(0, 100)} fill="none" stroke="var(--chart-track)" strokeWidth={strokeW} strokeLinecap="round" />
 
         {/* Zones */}
         <path d={arcPath(0, dangerEnd)} fill="none" stroke="var(--color-danger)" strokeOpacity="0.35" strokeWidth={strokeW} strokeLinecap="round" />

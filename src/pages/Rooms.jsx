@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { Card, Button, Input, Spinner, Badge, EmptyState } from '../components/ui';
+import { useConfirm } from '../hooks/useConfirm';
 
 export default function Rooms() {
+  const { confirm, dialog } = useConfirm();
   const [rooms, setRooms] = useState(null);
   const [roomName, setRoomName] = useState('');
   const [joinCode, setJoinCode] = useState('');
@@ -53,19 +55,30 @@ export default function Rooms() {
   };
 
   const handleLeave = async (id) => {
-    if (!confirm('Leave this room? You keep the subjects/timetable you already have, but stop getting future updates.')) return;
+    const ok = await confirm({
+      title: 'Leave this room?',
+      description: 'You keep the subjects/timetable you already have, but stop getting future updates.',
+      confirmLabel: 'Leave room',
+    });
+    if (!ok) return;
     await api.leaveRoom(id);
     await load();
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this room? Members keep what they already have, but stop getting future updates.')) return;
+    const ok = await confirm({
+      title: 'Delete this room?',
+      description: 'Members keep what they already have, but stop getting future updates.',
+      confirmLabel: 'Delete room',
+    });
+    if (!ok) return;
     await api.deleteRoom(id);
     await load();
   };
 
   return (
     <div className="flex flex-col gap-6">
+      {dialog}
       <div>
         <h1 className="font-display text-2xl font-semibold">Rooms</h1>
         <p className="text-[var(--color-text-muted)] text-sm mt-1">

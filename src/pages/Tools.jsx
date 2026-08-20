@@ -68,7 +68,7 @@ export default function Tools() {
             <h2 className="font-display font-semibold mb-4">Lectures needed for each target</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {Object.entries(calc.lecturesNeededForTargets).map(([target, needed]) => (
-                <div key={target} className="rounded-xl bg-white/5 p-4 text-center">
+                <div key={target} className="rounded-xl bg-[var(--tint-5)] p-4 text-center">
                   <p className="text-xs text-[var(--color-text-muted)] mb-1">{target}%</p>
                   <p className="mono-num text-2xl font-bold">{Number.isFinite(needed) ? needed : '—'}</p>
                 </div>
@@ -102,7 +102,7 @@ const STATUS_TONE = { safe: 'safe', risky: 'risky', danger: 'danger' };
 
 function ScenarioCard({ title, scenario }) {
   return (
-    <div className="rounded-xl bg-white/5 border border-[var(--color-border)] p-4">
+    <div className="rounded-xl bg-[var(--tint-5)] border border-[var(--color-border)] p-4">
       <p className="text-xs text-[var(--color-text-muted)] mb-2">{title}</p>
       <div className="flex items-center justify-between">
         <span className="mono-num text-2xl font-bold">{scenario.resultingPercentage}%</span>

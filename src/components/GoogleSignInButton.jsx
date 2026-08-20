@@ -29,6 +29,14 @@ function loadGoogleScript() {
  * reason (browser policy, user dismissed it recently, third-party cookies
  * blocked), we fall back to rendering Google's real button so sign-in is
  * never a dead end — just temporarily in Google's own visual style.
+ *
+ * `use_fedcm_for_prompt: true` is Google's current recommended config for
+ * One Tap: without it, Chrome's third-party-cookie phase-out makes the
+ * prompt silently fail to display (isNotDisplayed()) far more often,
+ * which is what made the account chooser feel broken/inconsistent and
+ * pushed users into typing their email manually elsewhere on the page.
+ * FedCM's chooser also natively lists every Google account signed into
+ * the browser, which is the actual account-selection UI being asked for.
  */
 export default function GoogleSignInButton({ staySignedIn = true, onError }) {
   const { loginWithGoogle } = useAuth();
@@ -36,6 +44,16 @@ export default function GoogleSignInButton({ staySignedIn = true, onError }) {
   const fallbackRef = useRef(null);
   const [ready, setReady] = useState(false);
   const [showFallback, setShowFallback] = useState(false);
+
+  // Read via refs inside the GIS callback instead of re-running
+  // initialize() on every staySignedIn toggle — re-initializing GIS
+  // mid-session is what made the prompt's display/cooldown state
+  // inconsistent (another contributor to "sometimes I have to type the
+  // email manually" instead of seeing the chooser).
+  const staySignedInRef = useRef(staySignedIn);
+  staySignedInRef.current = staySignedIn;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
 
   useEffect(() => {
     if (!CLIENT_ID) return;
@@ -46,24 +64,25 @@ export default function GoogleSignInButton({ staySignedIn = true, onError }) {
         if (cancelled) return;
         window.google.accounts.id.initialize({
           client_id: CLIENT_ID,
+          use_fedcm_for_prompt: true,
+          auto_select: false,
           callback: async (response) => {
             try {
-              const user = await loginWithGoogle(response.credential, staySignedIn);
+              const user = await loginWithGoogle(response.credential, staySignedInRef.current);
               navigate(user.setupCompleted ? '/' : '/setup');
             } catch (err) {
-              onError?.(err.message || 'Google sign-in failed');
+              onErrorRef.current?.(err.message || 'Google sign-in failed');
             }
           },
         });
         setReady(true);
       })
-      .catch(() => onError?.('Could not load Google Sign-In'));
+      .catch(() => onErrorRef.current?.('Could not load Google Sign-In'));
 
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [staySignedIn]);
+  }, [loginWithGoogle, navigate]);
 
   useEffect(() => {
     if (showFallback && fallbackRef.current && window.google?.accounts?.id) {
@@ -95,7 +114,7 @@ export default function GoogleSignInButton({ staySignedIn = true, onError }) {
       type="button"
       onClick={handleClick}
       disabled={!ready}
-      className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-xl font-medium text-sm bg-white/5 hover:bg-white/10 text-[var(--color-text)] border border-[var(--color-border)] transition-all duration-150 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none"
+      className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-xl font-medium text-sm bg-[var(--tint-5)] hover:bg-[var(--tint-10)] text-[var(--color-text)] border border-[var(--color-border)] transition-all duration-150 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none"
     >
       <GoogleGIcon className="w-4.5 h-4.5 shrink-0" />
       {ready ? 'Continue with Google' : 'Loading…'}

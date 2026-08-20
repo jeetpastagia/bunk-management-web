@@ -39,7 +39,7 @@ export default function Analytics() {
 function TabButton({ active, children, ...props }) {
   return (
     <button
-      className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${active ? 'bg-[var(--color-brand)] text-white' : 'bg-white/5 text-[var(--color-text-muted)] hover:bg-white/10'}`}
+      className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${active ? 'bg-[var(--color-brand)] text-white' : 'bg-[var(--tint-5)] text-[var(--color-text-muted)] hover:bg-[var(--tint-10)]'}`}
       {...props}
     >
       {children}
@@ -59,13 +59,13 @@ function SubjectsView({ subjects }) {
         <div style={{ width: '100%', height: 260 }}>
           <ResponsiveContainer>
             <BarChart data={chartData} margin={{ left: -20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
-              <XAxis dataKey="name" tick={{ fill: '#8A90A3', fontSize: 11 }} axisLine={{ stroke: 'rgba(255,255,255,0.1)' }} />
-              <YAxis tick={{ fill: '#8A90A3', fontSize: 11 }} axisLine={false} tickLine={false} domain={[0, 100]} />
-              <Tooltip contentStyle={{ background: '#171C27', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontSize: 12 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
+              <XAxis dataKey="name" tick={{ fill: 'var(--chart-tick)', fontSize: 11 }} axisLine={{ stroke: 'var(--chart-axis)' }} />
+              <YAxis tick={{ fill: 'var(--chart-tick)', fontSize: 11 }} axisLine={false} tickLine={false} domain={[0, 100]} />
+              <Tooltip contentStyle={{ background: 'var(--color-surface-raised)', border: '1px solid var(--chart-axis)', borderRadius: 12, fontSize: 12, color: 'var(--color-text)' }} />
               <Bar dataKey="percentage" radius={[6, 6, 0, 0]}>
                 {chartData.map((d, i) => (
-                  <Cell key={i} fill={d.percentage < 75 ? '#FF5C6C' : d.percentage < 83 ? '#F2B84B' : '#3ECF8E'} />
+                  <Cell key={i} fill={d.percentage < 75 ? 'var(--color-danger)' : d.percentage < 83 ? 'var(--color-risky)' : 'var(--color-safe)'} />
                 ))}
               </Bar>
             </BarChart>

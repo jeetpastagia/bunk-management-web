@@ -6,7 +6,7 @@ const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'Ju
 const COLOR_MAP = {
   green: 'var(--color-safe)',
   red: 'var(--color-danger)',
-  grey: 'rgba(255,255,255,0.12)',
+  grey: 'var(--chart-track)',
   blue: 'var(--color-brand)',
 };
 
@@ -44,9 +44,9 @@ export default function CalendarPage() {
           <p className="text-[var(--color-text-muted)] text-sm mt-1">Tap a date to see that day's lecture history.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => changeMonth(-1)} className="w-8 h-8 rounded-lg bg-white/6 hover:bg-white/10 flex items-center justify-center">‹</button>
+          <button onClick={() => changeMonth(-1)} className="w-8 h-8 rounded-lg bg-[var(--tint-6)] hover:bg-[var(--tint-10)] flex items-center justify-center">‹</button>
           <span className="font-display font-medium w-36 text-center">{MONTH_NAMES[month - 1]} {year}</span>
-          <button onClick={() => changeMonth(1)} className="w-8 h-8 rounded-lg bg-white/6 hover:bg-white/10 flex items-center justify-center">›</button>
+          <button onClick={() => changeMonth(1)} className="w-8 h-8 rounded-lg bg-[var(--tint-6)] hover:bg-[var(--tint-10)] flex items-center justify-center">›</button>
         </div>
       </div>
 
@@ -75,7 +75,7 @@ export default function CalendarPage() {
                   key={day}
                   onClick={() => setSelected(info || { date: iso, conducted: 0, attended: 0, bunked: 0 })}
                   className="aspect-square rounded-xl flex flex-col items-center justify-center gap-1 border border-[var(--color-border-soft)] hover:border-[var(--color-brand)]/50 transition-colors"
-                  style={{ background: info ? `${color}1A` : 'transparent' }}
+                  style={{ background: info ? `color-mix(in srgb, ${color} 16%, transparent)` : 'transparent' }}
                 >
                   <span className="mono-num text-sm">{day}</span>
                   {info && <span className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />}

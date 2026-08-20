@@ -59,6 +59,8 @@ export const api = {
   completeSetup: (payload) => request('/setup', { method: 'POST', body: payload }),
   startNewSemester: (payload) => request('/setup/new-semester', { method: 'POST', body: payload }),
   listSemesters: () => request('/setup/semesters'),
+  updateAttendanceThreshold: (requiredAttendancePercentage) =>
+    request('/setup/attendance-threshold', { method: 'PATCH', body: { requiredAttendancePercentage } }),
 
   // Subjects
   listSubjects: (search) => request(`/subjects${search ? `?search=${encodeURIComponent(search)}` : ''}`),

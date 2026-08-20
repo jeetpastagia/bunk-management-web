@@ -10,18 +10,37 @@ const DAY_ALIASES = {
   saturday: ['sat', 'saturday'],
 };
 
-/** Runs the uploaded timetable photo through Tesseract and returns word-level positions (real OCR, not a stub). */
+/**
+ * Flattens Tesseract's hierarchical output (blocks -> paragraphs -> lines ->
+ * words) into one flat word list with absolute bounding boxes.
+ */
+function flattenWords(blocks) {
+  const words = [];
+  for (const block of blocks || []) {
+    for (const paragraph of block.paragraphs || []) {
+      for (const line of paragraph.lines || []) {
+        for (const word of line.words || []) {
+          words.push({ text: word.text, x0: word.bbox.x0, y0: word.bbox.y0, x1: word.bbox.x1, y1: word.bbox.y1 });
+        }
+      }
+    }
+  }
+  return words;
+}
+
+/**
+ * Runs the uploaded timetable photo through Tesseract and returns word-level
+ * positions (real OCR, not a stub). Tesseract.js v5+ only returns `data.text`
+ * by default — word/line/block bounding boxes require explicitly requesting
+ * the `blocks` output, otherwise `data.words` doesn't exist at all and every
+ * upload silently detects 0 words. That was the actual cause behind "Filled
+ * in 0 of 0 detected slot(s)" on every photo, not photo quality.
+ */
 export async function runTimetableOcr(imageFile) {
   const worker = await createWorker('eng');
   try {
-    const { data } = await worker.recognize(imageFile);
-    const words = (data.words || []).map((w) => ({
-      text: w.text,
-      x0: w.bbox.x0,
-      y0: w.bbox.y0,
-      x1: w.bbox.x1,
-      y1: w.bbox.y1,
-    }));
+    const { data } = await worker.recognize(imageFile, {}, { blocks: true });
+    const words = flattenWords(data.blocks);
     return { words, rawText: data.text };
   } finally {
     await worker.terminate();
