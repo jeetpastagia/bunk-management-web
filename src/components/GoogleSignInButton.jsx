@@ -44,6 +44,7 @@ export default function GoogleSignInButton({ staySignedIn = true, onError }) {
   const fallbackRef = useRef(null);
   const [ready, setReady] = useState(false);
   const [showFallback, setShowFallback] = useState(false);
+  const [signingIn, setSigningIn] = useState(false);
 
   // Read via refs inside the GIS callback instead of re-running
   // initialize() on every staySignedIn toggle — re-initializing GIS
@@ -54,6 +55,11 @@ export default function GoogleSignInButton({ staySignedIn = true, onError }) {
   staySignedInRef.current = staySignedIn;
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
+  // A plain ref (not state) so the guard is synchronous — state updates
+  // are batched/async and wouldn't reliably block a callback that fires
+  // again a few milliseconds later (e.g. a fast double-tap before the
+  // button visually disables).
+  const inFlightRef = useRef(false);
 
   useEffect(() => {
     if (!CLIENT_ID) return;
@@ -67,11 +73,17 @@ export default function GoogleSignInButton({ staySignedIn = true, onError }) {
           use_fedcm_for_prompt: true,
           auto_select: false,
           callback: async (response) => {
+            if (inFlightRef.current) return; // already handling a sign-in — ignore a re-entrant callback
+            inFlightRef.current = true;
+            setSigningIn(true);
             try {
               const user = await loginWithGoogle(response.credential, staySignedInRef.current);
               navigate(user.setupCompleted ? '/' : '/setup');
             } catch (err) {
               onErrorRef.current?.(err.message || 'Google sign-in failed');
+            } finally {
+              inFlightRef.current = false;
+              setSigningIn(false);
             }
           },
         });
@@ -102,6 +114,7 @@ export default function GoogleSignInButton({ staySignedIn = true, onError }) {
   }
 
   const handleClick = () => {
+    if (signingIn) return; // already in flight — this is the visible half of the inFlightRef guard above
     window.google.accounts.id.prompt((notification) => {
       if (notification.isNotDisplayed?.() || notification.isSkippedMoment?.()) {
         setShowFallback(true);
@@ -113,11 +126,11 @@ export default function GoogleSignInButton({ staySignedIn = true, onError }) {
     <button
       type="button"
       onClick={handleClick}
-      disabled={!ready}
+      disabled={!ready || signingIn}
       className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-xl font-medium text-sm bg-[var(--tint-5)] hover:bg-[var(--tint-10)] text-[var(--color-text)] border border-[var(--color-border)] transition-all duration-150 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none"
     >
       <GoogleGIcon className="w-4.5 h-4.5 shrink-0" />
-      {ready ? 'Continue with Google' : 'Loading…'}
+      {signingIn ? 'Signing in…' : ready ? 'Continue with Google' : 'Loading…'}
     </button>
   );
 }
