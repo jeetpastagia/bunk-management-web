@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { Card, Button, Input, Spinner, Badge, EmptyState } from '../components/ui';
 import { useConfirm } from '../hooks/useConfirm';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 
 export default function Rooms() {
   const { confirm, dialog } = useConfirm();
+  const reveal = useScrollReveal();
   const [rooms, setRooms] = useState(null);
   const [roomName, setRoomName] = useState('');
   const [joinCode, setJoinCode] = useState('');
@@ -77,7 +79,7 @@ export default function Rooms() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div ref={reveal} className="flex flex-col gap-6">
       {dialog}
       <div>
         <h1 className="font-display text-2xl font-semibold">Rooms</h1>
@@ -87,7 +89,7 @@ export default function Rooms() {
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4">
-        <Card>
+        <Card tilt>
           <h2 className="font-display font-semibold mb-3">Create a room</h2>
           <form onSubmit={handleCreate} className="flex flex-col gap-3">
             <Input label="Room name" placeholder="e.g. CS-3A DBMS" value={roomName} onChange={(e) => setRoomName(e.target.value)} required />
@@ -98,7 +100,7 @@ export default function Rooms() {
           </p>
         </Card>
 
-        <Card>
+        <Card tilt>
           <h2 className="font-display font-semibold mb-3">Join a room</h2>
           <form onSubmit={handleJoin} className="flex flex-col gap-3">
             <Input

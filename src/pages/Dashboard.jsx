@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { Card, Badge, Spinner, Button } from '../components/ui';
 import BunkGauge from '../components/BunkGauge';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 
 const STATUS_META = {
   attended: { label: 'Attended', tone: 'safe' },
@@ -17,6 +18,7 @@ export default function Dashboard() {
   const [insights, setInsights] = useState([]);
   const [error, setError] = useState('');
   const [marking, setMarking] = useState(null);
+  const reveal = useScrollReveal();
 
   const load = async () => {
     try {
@@ -48,7 +50,7 @@ export default function Dashboard() {
   const { overall, monthly, requiredAttendancePercentage, safeBunksRemaining, lecturesNeededForTarget, today, danger, monthlyDanger } = data;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div ref={reveal} className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-2xl font-semibold">Dashboard</h1>
         <p className="text-[var(--color-text-muted)] text-sm mt-1">Your attendance, at a glance.</p>
@@ -68,7 +70,7 @@ export default function Dashboard() {
       )}
 
       <div className="grid lg:grid-cols-3 gap-6">
-        <Card raised className="lg:col-span-1 flex flex-col items-center justify-center py-8">
+        <Card raised tilt className="lg:col-span-1 flex flex-col items-center justify-center py-8">
           <BunkGauge percentage={overall.percentage} requiredPercentage={requiredAttendancePercentage} size={230} label="Overall attendance" sub={`${overall.attended}/${overall.conducted}`} />
         </Card>
 
@@ -137,7 +139,7 @@ export default function Dashboard() {
 function StatCard({ label, value, sub, tone }) {
   const toneColor = { safe: 'var(--color-safe)', danger: 'var(--color-danger)', risky: 'var(--color-risky)', brand: 'var(--color-brand-soft)', neutral: 'var(--color-text)' }[tone];
   return (
-    <Card className="flex flex-col justify-between">
+    <Card tilt className="flex flex-col justify-between">
       <p className="text-xs text-[var(--color-text-muted)] font-medium">{label}</p>
       <p className="mono-num text-3xl font-bold mt-2" style={{ color: toneColor }}>{value}</p>
       <p className="text-xs text-[var(--color-text-faint)] mt-1">{sub}</p>

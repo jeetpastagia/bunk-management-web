@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { Card, Button, Input, Spinner, EmptyState } from '../components/ui';
 import { useConfirm } from '../hooks/useConfirm';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 
 const emptyForm = { name: '', code: '', facultyName: '', credits: '', weeklyLectureCount: '' };
 
 export default function Subjects() {
   const { confirm, dialog } = useConfirm();
+  const reveal = useScrollReveal();
   const [subjects, setSubjects] = useState(null);
   const [search, setSearch] = useState('');
   const [form, setForm] = useState(emptyForm);
@@ -135,7 +137,7 @@ export default function Subjects() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div ref={reveal} className="flex flex-col gap-6">
       {dialog}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>

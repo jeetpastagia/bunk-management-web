@@ -1,15 +1,37 @@
-export function Card({ children, className = '', raised = false }) {
-  return <div className={`${raised ? 'glass-raised' : 'glass'} rounded-2xl p-5 transition-colors duration-200 ${className}`}>{children}</div>;
+import { usePointerTilt } from '../hooks/usePointerTilt';
+import { useMagneticHover } from '../hooks/useMagneticHover';
+
+/** Pass `tilt` to opt a card into the mouse-driven 3D tilt effect (desktop/hover-capable devices only, off under reduced-motion). */
+export function Card({ children, className = '', raised = false, tilt = false }) {
+  const tiltRef = usePointerTilt({ max: 6, lift: 4, disabled: !tilt });
+  return (
+    <div ref={tiltRef} className={`${raised ? 'glass-raised' : 'glass'} rounded-2xl p-5 transition-colors duration-200 ${tilt ? 'tilt-card' : ''} ${className}`}>
+      {children}
+    </div>
+  );
 }
 
-export function Button({ children, variant = 'primary', className = '', ...props }) {
+/**
+ * Primary-variant buttons get a subtle magnetic pull toward the pointer
+ * plus a brand-colored glow by default (they're consistently this app's
+ * main per-screen CTA — Save/Create/Join/Log in — so it reads as premium
+ * rather than noisy). Small/secondary actions (ghost/danger, used for
+ * dense inline row actions like Edit/Delete/Attended/Bunked) stay as
+ * plain, precise click targets. Override with the `magnetic` prop.
+ */
+export function Button({ children, variant = 'primary', className = '', magnetic, disabled, ...props }) {
   const variants = {
-    primary: 'bg-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] text-white',
+    primary: 'bg-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] text-white btn-glow',
     ghost: 'bg-[var(--tint-5)] hover:bg-[var(--tint-10)] text-[var(--color-text)] border border-[var(--color-border)]',
     danger: 'bg-[var(--color-danger)]/15 hover:bg-[var(--color-danger)]/25 text-[var(--color-danger)] border border-[var(--color-danger)]/30',
   };
+  const wantsMagnetic = magnetic ?? variant === 'primary';
+  const magneticRef = useMagneticHover({ strength: 0.2, max: 6, disabled: !wantsMagnetic || disabled });
+
   return (
     <button
+      ref={magneticRef}
+      disabled={disabled}
       className={`px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none ${variants[variant]} ${className}`}
       {...props}
     >

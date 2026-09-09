@@ -3,6 +3,7 @@ import { api } from '../api/client';
 import { Card, Button, Spinner, Select } from '../components/ui';
 import { runTimetableOcr, buildGridFromWords, matchSubjectName } from '../lib/timetableOcr';
 import { useConfirm } from '../hooks/useConfirm';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 const DAY_LABELS = { monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu', friday: 'Fri', saturday: 'Sat' };
@@ -10,6 +11,7 @@ const MAX_LECTURES = 8;
 
 export default function Timetable() {
   const { confirm, dialog } = useConfirm();
+  const reveal = useScrollReveal();
   const [subjects, setSubjects] = useState([]);
   const [grid, setGrid] = useState({}); // `${day}-${lectureNumber}` -> subjectId
   const [weekly, setWeekly] = useState(null);
@@ -141,7 +143,7 @@ export default function Timetable() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div ref={reveal} className="flex flex-col gap-6">
       {dialog}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>

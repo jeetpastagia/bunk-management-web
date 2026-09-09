@@ -1,6 +1,10 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import gsap from 'gsap';
 import { useAuth } from '../context/AuthContext';
+import { usePrefersReducedMotion } from '../hooks/useMotionPreferences';
 import NotificationBell from './NotificationBell';
+import PageTransition from './PageTransition';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: GaugeIcon },
@@ -15,9 +19,56 @@ const NAV_ITEMS = [
   { to: '/settings', label: 'Settings', icon: GearIcon },
 ];
 
+/**
+ * A highlight pill that slides/resizes to sit behind whichever NavLink
+ * currently has aria-current="page" (set automatically by NavLink itself,
+ * so this never needs its own copy of the active-route matching logic).
+ * Reading layout via getBoundingClientRect after each route change and
+ * animating a single absolutely-positioned div is far cheaper than
+ * animating every nav item individually.
+ */
+function ActiveNavIndicator({ containerRef }) {
+  const indicatorRef = useRef(null);
+  const location = useLocation();
+  const reducedMotion = usePrefersReducedMotion();
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const indicator = indicatorRef.current;
+    if (!container || !indicator) return;
+    const activeLink = container.querySelector('a[aria-current="page"]');
+    if (!activeLink) {
+      indicator.style.opacity = '0';
+      return;
+    }
+    const cRect = container.getBoundingClientRect();
+    const aRect = activeLink.getBoundingClientRect();
+    const top = aRect.top - cRect.top;
+
+    if (reducedMotion) {
+      indicator.style.transition = 'none';
+      indicator.style.transform = `translateY(${top}px)`;
+      indicator.style.height = `${aRect.height}px`;
+      indicator.style.opacity = '1';
+      return;
+    }
+    gsap.to(indicator, { y: top, height: aRect.height, opacity: 1, duration: 0.35, ease: 'power2.out' });
+  }, [location.pathname, containerRef, reducedMotion]);
+
+  return (
+    <div
+      ref={indicatorRef}
+      aria-hidden="true"
+      className="absolute left-0 right-0 rounded-xl bg-[var(--color-brand)]/15 pointer-events-none opacity-0"
+      style={{ top: 0, height: 0 }}
+    />
+  );
+}
+
 export default function AppShell() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const sidebarNavRef = useRef(null);
 
   const handleLogout = async () => {
     await logout();
@@ -35,15 +86,16 @@ export default function AppShell() {
           </div>
         </div>
 
-        <nav className="flex flex-col gap-1 flex-1">
+        <nav ref={sidebarNavRef} className="relative flex flex-col gap-1 flex-1">
+          <ActiveNavIndicator containerRef={sidebarNavRef} />
           {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
               end={to === '/'}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  isActive ? 'bg-[var(--color-brand)]/15 text-[var(--color-brand-soft)]' : 'text-[var(--color-text-muted)] hover:bg-[var(--tint-5)] hover:text-[var(--color-text)]'
+                `relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                  isActive ? 'text-[var(--color-brand-soft)]' : 'text-[var(--color-text-muted)] hover:bg-[var(--tint-5)] hover:text-[var(--color-text)]'
                 }`
               }
             >
@@ -78,7 +130,9 @@ export default function AppShell() {
             <LogoutIcon className="w-4.5 h-4.5" />
           </button>
         </div>
-        <Outlet />
+        <PageTransition>
+          <Outlet />
+        </PageTransition>
       </main>
 
       {/* Mobile bottom nav: solid (not glass) so scrolling content behind it never bleeds through, and scrollable so all screens are reachable, not just the first 5. */}

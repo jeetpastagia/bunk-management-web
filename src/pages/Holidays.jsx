@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { Card, Button, Input, Select, Spinner, EmptyState, Badge } from '../components/ui';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 
 export default function Holidays() {
+  const reveal = useScrollReveal();
   const [holidays, setHolidays] = useState(null);
   const [form, setForm] = useState({ date: '', name: '', type: 'manual' });
   const [error, setError] = useState('');
@@ -32,7 +34,7 @@ export default function Holidays() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div ref={reveal} className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-2xl font-semibold">Holidays</h1>
         <p className="text-[var(--color-text-muted)] text-sm mt-1">Holiday lectures never affect your attendance.</p>

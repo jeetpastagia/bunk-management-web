@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { Card, Spinner } from '../components/ui';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const COLOR_MAP = {
@@ -11,6 +12,7 @@ const COLOR_MAP = {
 };
 
 export default function CalendarPage() {
+  const reveal = useScrollReveal();
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
@@ -37,7 +39,7 @@ export default function CalendarPage() {
   const byDate = Object.fromEntries((days || []).map((d) => [d.date, d]));
 
   return (
-    <div className="flex flex-col gap-6">
+    <div ref={reveal} className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-2xl font-semibold">Calendar</h1>

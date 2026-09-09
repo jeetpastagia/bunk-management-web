@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { api } from '../api/client';
 import { Card, Spinner, ProgressBar, Badge } from '../components/ui';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 
 export default function Analytics() {
+  const reveal = useScrollReveal();
   const [tab, setTab] = useState('subjects');
   const [subjects, setSubjects] = useState(null);
   const [faculty, setFaculty] = useState(null);
@@ -14,7 +16,7 @@ export default function Analytics() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div ref={reveal} className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-2xl font-semibold">Analytics</h1>
         <p className="text-[var(--color-text-muted)] text-sm mt-1">Subject and faculty attendance breakdown.</p>

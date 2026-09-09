@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { Card, Button, Input, Spinner, Badge } from '../components/ui';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 
 export default function Tools() {
+  const reveal = useScrollReveal();
   const [calc, setCalc] = useState(null);
   const [simDate, setSimDate] = useState('');
   const [sim, setSim] = useState(null);
@@ -28,7 +30,7 @@ export default function Tools() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div ref={reveal} className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-2xl font-semibold">Smart tools</h1>
         <p className="text-[var(--color-text-muted)] text-sm mt-1">Calculator, bunk predictor, and future lecture simulator.</p>

@@ -3,6 +3,7 @@ import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Card, Button, Input, Select, Spinner, Badge, Switch } from '../components/ui';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 import { enablePushNotifications, disablePushNotifications, getStoredFcmToken, isFcmConfigured } from '../lib/notifications';
 
 const DEFAULT_NOTIFICATION_PREFS = { attendanceWarnings: true, roomActivity: true, timetableUpdates: true };
@@ -10,6 +11,7 @@ const DEFAULT_NOTIFICATION_PREFS = { attendanceWarnings: true, roomActivity: tru
 export default function Settings() {
   const { user, setUser, refresh } = useAuth();
   const { theme, setTheme } = useTheme();
+  const reveal = useScrollReveal();
   const [semesters, setSemesters] = useState(null);
   const [showNewSemester, setShowNewSemester] = useState(false);
   const [form, setForm] = useState({ semesterName: '', semesterStartDate: '', semesterEndDate: '', requiredAttendancePercentage: user?.requiredAttendancePercentage || 75, reuseTimetable: true });
@@ -141,7 +143,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div ref={reveal} className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-2xl font-semibold">Settings</h1>
         <p className="text-[var(--color-text-muted)] text-sm mt-1">Profile and semester management.</p>

@@ -1,8 +1,13 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Card, Button, Input } from '../components/ui';
 import GoogleSignInButton from '../components/GoogleSignInButton';
+import { usePrefersReducedMotion } from '../hooks/useMotionPreferences';
+
+// Lazy so the ~150KB+ of Three.js/R3F code only ever loads on the
+// auth screens that actually show it, never in the main app bundle.
+const Hero3D = lazy(() => import('../components/Hero3D'));
 
 export default function Login() {
   const { login } = useAuth();
@@ -84,16 +89,24 @@ export default function Login() {
 }
 
 export function AuthLayout({ children }) {
+  const reducedMotion = usePrefersReducedMotion();
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <div className="mb-8 flex items-center gap-2.5">
+    <div className="relative min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
+      {!reducedMotion && (
+        <Suspense fallback={null}>
+          <Hero3D className="absolute inset-0 z-0 opacity-90" />
+        </Suspense>
+      )}
+
+      <div className="relative z-10 mb-8 flex items-center gap-2.5">
         <div className="w-10 h-10 rounded-xl bg-[var(--color-brand)] flex items-center justify-center font-display font-bold text-white text-lg">B</div>
         <div>
           <div className="font-display font-semibold text-lg leading-tight">Bunk Manager</div>
           <div className="text-[11px] text-[var(--color-text-faint)] tracking-wide">TRACK SMART · BUNK SMARTER · STAY ABOVE 75%</div>
         </div>
       </div>
-      {children}
+      <div className="relative z-10 w-full flex flex-col items-center">{children}</div>
     </div>
   );
 }

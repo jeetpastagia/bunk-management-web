@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { Card, Button, Badge, Spinner, Input } from '../components/ui';
+import { useScrollReveal } from '../hooks/useScrollReveal';
 
 const STATUS_META = {
   attended: { label: 'Attended', tone: 'safe', icon: '✅' },
@@ -16,6 +17,7 @@ function todayISO() {
 }
 
 export default function Attendance() {
+  const reveal = useScrollReveal();
   const [date, setDate] = useState(todayISO());
   const [lectures, setLectures] = useState(null);
   const [marking, setMarking] = useState(null);
@@ -52,7 +54,7 @@ export default function Attendance() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div ref={reveal} className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-2xl font-semibold">Mark attendance</h1>
         <p className="text-[var(--color-text-muted)] text-sm mt-1">Attendance is tracked lecture-wise, never day-wise.</p>

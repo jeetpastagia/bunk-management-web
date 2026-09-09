@@ -185,6 +185,24 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Pairs with hooks/usePointerTilt.js, which writes the actual rotate/scale
+   values straight to el.style.transform on pointermove for performance —
+   this class only owns the resting transition/perspective setup. */
+.tilt-card {
+  transition: transform 0.15s ease-out;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Pairs with hooks/useMagneticHover.js the same way. */
+.btn-glow {
+  transition: transform 0.15s ease-out, box-shadow 0.2s ease-out, background-color 0.15s ease-out;
+}
+.btn-glow:hover {
+  box-shadow: 0 10px 28px -6px color-mix(in srgb, var(--color-brand) 50%, transparent);
+}
+
+
 :focus-visible {
   outline: 2px solid var(--color-brand-soft);
   outline-offset: 2px;
