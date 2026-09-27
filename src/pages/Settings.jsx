@@ -37,8 +37,14 @@ export default function Settings() {
   const [thresholdSaving, setThresholdSaving] = useState(false);
   const [thresholdMessage, setThresholdMessage] = useState('');
   const [prefBusy, setPrefBusy] = useState('');
+  const [quickEndDate, setQuickEndDate] = useState('');
+  const [quickEndDateSaving, setQuickEndDateSaving] = useState(false);
+  const [quickEndDateError, setQuickEndDateError] = useState('');
 
   const notificationPrefs = { ...DEFAULT_NOTIFICATION_PREFS, ...user?.notificationPrefs };
+  // Shown as a prompt below — for whenever the term end date wasn't known
+  // yet at setup time, or the college only announces it partway through.
+  const activeSemester = semesters?.find((s) => s.status === 'active') || null;
 
   const handleNotifPrefChange = async (key, value) => {
     setNotifPrefBusy(key);
@@ -201,6 +207,22 @@ export default function Settings() {
       setSemesterActionError(err.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleQuickEndDateSave = async (e) => {
+    e.preventDefault();
+    if (!activeSemester) return;
+    setQuickEndDateSaving(true);
+    setQuickEndDateError('');
+    try {
+      await api.updateSemester(activeSemester._id, { endDate: quickEndDate });
+      setQuickEndDate('');
+      await load();
+    } catch (err) {
+      setQuickEndDateError(err.message);
+    } finally {
+      setQuickEndDateSaving(false);
     }
   };
 
@@ -380,6 +402,20 @@ export default function Settings() {
             {showNewSemester ? 'Cancel' : 'Start new semester'}
           </Button>
         </div>
+
+        {activeSemester && !activeSemester.endDate && (
+          <form onSubmit={handleQuickEndDateSave} className="flex flex-col sm:flex-row sm:items-end gap-3 mb-6 p-4 rounded-xl bg-[var(--color-brand)]/10 border border-[var(--color-brand)]/30">
+            <div className="flex-1">
+              <p className="text-sm font-medium">Add your term end date</p>
+              <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                Didn't know it when you set up "{activeSemester.name}", or your college only announced it later? Add it any time — it's just kept on record for this semester, nothing depends on it being set.
+              </p>
+            </div>
+            <Input type="date" value={quickEndDate} onChange={(e) => setQuickEndDate(e.target.value)} required className="w-full sm:w-44" />
+            <Button type="submit" disabled={quickEndDateSaving} className="whitespace-nowrap">{quickEndDateSaving ? 'Saving…' : 'Save end date'}</Button>
+          </form>
+        )}
+        {quickEndDateError && <p className="text-[var(--color-danger)] text-sm mb-3">{quickEndDateError}</p>}
 
         {showNewSemester && (
           <form onSubmit={handleArchiveAndStart} className="flex flex-col gap-3 mb-6 p-4 rounded-xl bg-[var(--tint-5)] border border-[var(--color-border)]">
