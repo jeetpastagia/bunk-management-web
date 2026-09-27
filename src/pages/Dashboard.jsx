@@ -106,6 +106,16 @@ export default function Dashboard() {
           </p>
         </Card>
       )}
+      {semesterEndInfo && !semesterEndInfo.ended && semesterEndInfo.achievable && semesterEndInfo.bestPossiblePercentage - requiredAttendancePercentage < 3 && (
+        <Card className="border-[var(--color-risky)]/40 bg-[var(--color-risky)]/8">
+          <p className="font-semibold text-[var(--color-risky)]">
+            Cutting it close: {requiredAttendancePercentage}% by {new Date(semesterEndInfo.endDate).toISOString().slice(0, 10)} is only reachable if you attend every remaining lecture
+          </p>
+          <p className="text-sm text-[var(--color-text-muted)] mt-1">
+            {semesterEndInfo.remainingLectures} lecture(s) left this term, best case {semesterEndInfo.bestPossiblePercentage}% — missing even one puts the target out of reach.
+          </p>
+        </Card>
+      )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard icon={BookIcon} label="Total Subjects" value={subjectCount} sub="This semester" />

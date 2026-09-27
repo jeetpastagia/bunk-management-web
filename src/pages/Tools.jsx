@@ -7,6 +7,7 @@ export default function Tools() {
   const reveal = useScrollReveal();
   const [calc, setCalc] = useState(null);
   const [semesterEndInfo, setSemesterEndInfo] = useState(null);
+  const [requiredPct, setRequiredPct] = useState(75);
   const [simDate, setSimDate] = useState('');
   const [sim, setSim] = useState(null);
   const [simLoading, setSimLoading] = useState(false);
@@ -14,7 +15,10 @@ export default function Tools() {
 
   useEffect(() => {
     api.calculator().then(setCalc).catch((e) => setError(e.message));
-    api.overview().then((res) => setSemesterEndInfo(res.semesterEndInfo)).catch(() => {});
+    api.overview().then((res) => {
+      setSemesterEndInfo(res.semesterEndInfo);
+      setRequiredPct(res.requiredAttendancePercentage);
+    }).catch(() => {});
   }, []);
 
   const maxSimDate = semesterEndInfo?.endDate ? new Date(semesterEndInfo.endDate).toISOString().slice(0, 10) : undefined;
@@ -42,19 +46,33 @@ export default function Tools() {
 
       {error && <p className="text-[var(--color-danger)] text-sm">{error}</p>}
 
-      {semesterEndInfo && !semesterEndInfo.ended && (
-        <Card className={semesterEndInfo.achievable ? 'border-[var(--color-safe)]/30 bg-[var(--color-safe)]/8' : 'border-[var(--color-danger)]/40 bg-[var(--color-danger)]/8'}>
-          <p className={`font-semibold ${semesterEndInfo.achievable ? 'text-[var(--color-safe)]' : 'text-[var(--color-danger)]'}`}>
-            {semesterEndInfo.achievable
-              ? `Reaching your target is still achievable by ${new Date(semesterEndInfo.endDate).toISOString().slice(0, 10)}`
-              : `Reaching your target is no longer mathematically possible by ${new Date(semesterEndInfo.endDate).toISOString().slice(0, 10)}`}
-          </p>
-          <p className="text-sm text-[var(--color-text-muted)] mt-1">
-            {semesterEndInfo.remainingLectures} lecture(s) remain in the timetable before the semester ends ({semesterEndInfo.daysRemaining} day(s) left).
-            Attending every one of them gets you to a best-case {semesterEndInfo.bestPossiblePercentage}%.
-          </p>
-        </Card>
-      )}
+      {semesterEndInfo && !semesterEndInfo.ended && (() => {
+        const endDateStr = new Date(semesterEndInfo.endDate).toISOString().slice(0, 10);
+        const margin = semesterEndInfo.bestPossiblePercentage - requiredPct;
+        const tier = !semesterEndInfo.achievable ? 'danger' : margin < 3 ? 'risky' : 'safe';
+        // Tailwind's scanner needs each arbitrary-value class to appear literally
+        // in source — building "border-[var(--color-${tier})]" via interpolation
+        // would silently produce no CSS at all, so this is a lookup, not a template.
+        const TONE_CLASSES = {
+          danger: { card: 'border-[var(--color-danger)]/40 bg-[var(--color-danger)]/8', text: 'text-[var(--color-danger)]' },
+          risky: { card: 'border-[var(--color-risky)]/40 bg-[var(--color-risky)]/8', text: 'text-[var(--color-risky)]' },
+          safe: { card: 'border-[var(--color-safe)]/30 bg-[var(--color-safe)]/8', text: 'text-[var(--color-safe)]' },
+        };
+        const heading = {
+          danger: `Reaching your target is no longer mathematically possible by ${endDateStr}`,
+          risky: `Cutting it close — reaching your target by ${endDateStr} needs every remaining lecture attended`,
+          safe: `Reaching your target is comfortably achievable by ${endDateStr}`,
+        }[tier];
+        return (
+          <Card className={TONE_CLASSES[tier].card}>
+            <p className={`font-semibold ${TONE_CLASSES[tier].text}`}>{heading}</p>
+            <p className="text-sm text-[var(--color-text-muted)] mt-1">
+              {semesterEndInfo.remainingLectures} lecture(s) remain in the timetable before the semester ends ({semesterEndInfo.daysRemaining} day(s) left).
+              Attending every one of them gets you to a best-case {semesterEndInfo.bestPossiblePercentage}%.
+            </p>
+          </Card>
+        );
+      })()}
       {semesterEndInfo?.ended && (
         <Card className="border-[var(--color-border)]">
           <p className="text-sm text-[var(--color-text-muted)]">This semester's end date has passed — consider archiving it and starting a new one in Settings.</p>

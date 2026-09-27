@@ -117,9 +117,12 @@ function SubjectsView({ subjects, requiredPct }) {
             </div>
             {s.achievability && (
               <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-[var(--color-border-soft)]">
-                <Badge tone={s.achievability.achievable ? 'safe' : 'danger'}>
-                  {s.achievability.achievable ? 'On track for term end' : `Best case ${s.achievability.bestPossiblePercentage}%`}
-                </Badge>
+                {(() => {
+                  const margin = s.achievability.bestPossiblePercentage - requiredPct;
+                  if (!s.achievability.achievable) return <Badge tone="danger">{`Best case ${s.achievability.bestPossiblePercentage}%`}</Badge>;
+                  if (margin < 3) return <Badge tone="risky">Cutting it close</Badge>;
+                  return <Badge tone="safe">On track for term end</Badge>;
+                })()}
                 <span className="text-xs text-[var(--color-text-faint)]">{s.achievability.remainingLectures} left this term</span>
               </div>
             )}
