@@ -1,5 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+// Imported first and for its side effect only: this attaches the
+// beforeinstallprompt listener the instant the bundle starts executing,
+// before React (and the auth check gating the button that uses it) even
+// starts — see installPromptCapture.js for why that ordering matters.
+import './lib/installPromptCapture.js'
 import './index.css'
 import App from './App.jsx'
 
