@@ -6,7 +6,7 @@ import { Card, Button, Input } from '../components/ui';
 import { AuthLayout } from './Login';
 
 export default function Setup() {
-  const { refresh } = useAuth();
+  const { refresh, logout } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
     studentName: '',
@@ -20,6 +20,15 @@ export default function Setup() {
   const [loading, setLoading] = useState(false);
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  // The account signup just created is still signed in at this point — a
+  // plain navigate('/login') would just bounce right back here (an
+  // authenticated-but-not-set-up user is always redirected to /setup), so
+  // this needs an actual logout first for "back to login" to make sense.
+  const handleBack = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,6 +52,13 @@ export default function Setup() {
   return (
     <AuthLayout>
       <Card raised className="w-full max-w-md">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors mb-4"
+        >
+          <BackIcon className="w-4 h-4" /> Back to login
+        </button>
         <h1 className="font-display text-2xl font-semibold mb-1">Let's set things up</h1>
         <p className="text-[var(--color-text-muted)] text-sm mb-6">
           The semester start date is required — every attendance calculation is built from it.
@@ -73,3 +89,5 @@ export default function Setup() {
     </AuthLayout>
   );
 }
+
+function BackIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}><path d="M19 12H5M12 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
