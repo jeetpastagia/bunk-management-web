@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Card, Button, Input, Select, Spinner, Badge, Switch } from '../components/ui';
+import { Card, Button, Input, Select, Spinner, Badge, Switch, ProgressBar } from '../components/ui';
 import { useScrollReveal } from '../hooks/useScrollReveal';
+import { useConfirm } from '../hooks/useConfirm';
 import { enablePushNotifications, disablePushNotifications, getStoredFcmToken, isFcmConfigured } from '../lib/notifications';
 
 const DEFAULT_NOTIFICATION_PREFS = { attendanceWarnings: true, roomActivity: true, timetableUpdates: true };
@@ -12,11 +13,18 @@ export default function Settings() {
   const { user, setUser, refresh } = useAuth();
   const { theme, setTheme } = useTheme();
   const reveal = useScrollReveal();
+  const { confirm, dialog } = useConfirm();
   const [semesters, setSemesters] = useState(null);
   const [showNewSemester, setShowNewSemester] = useState(false);
   const [form, setForm] = useState({ semesterName: '', semesterStartDate: '', semesterEndDate: '', requiredAttendancePercentage: user?.requiredAttendancePercentage || 75, reuseTimetable: true });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [viewingSemester, setViewingSemester] = useState(null); // the semester object whose detail modal is open
+  const [semesterDetail, setSemesterDetail] = useState(null); // fetched overview for viewingSemester
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [editingSemesterId, setEditingSemesterId] = useState(null);
+  const [editSemesterForm, setEditSemesterForm] = useState(null);
+  const [semesterActionError, setSemesterActionError] = useState('');
   const [pushEnabled, setPushEnabled] = useState(Boolean(getStoredFcmToken()));
   const [pushBusy, setPushBusy] = useState(false);
   const [pushError, setPushError] = useState('');
@@ -142,8 +150,79 @@ export default function Settings() {
     }
   };
 
+  const openSemesterDetail = async (s) => {
+    setViewingSemester(s);
+    setSemesterDetail(null);
+    setDetailLoading(true);
+    try {
+      const res = await api.semesterOverview(s._id);
+      setSemesterDetail(res);
+    } catch (err) {
+      setSemesterDetail({ error: err.message });
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+  const closeSemesterDetail = () => {
+    setViewingSemester(null);
+    setSemesterDetail(null);
+  };
+
+  const openSemesterEdit = (s) => {
+    setSemesterActionError('');
+    setEditingSemesterId(s._id);
+    setEditSemesterForm({
+      name: s.name,
+      startDate: new Date(s.startDate).toISOString().slice(0, 10),
+      endDate: s.endDate ? new Date(s.endDate).toISOString().slice(0, 10) : '',
+      requiredAttendancePercentage: s.requiredAttendancePercentage,
+    });
+  };
+  const closeSemesterEdit = () => {
+    setEditingSemesterId(null);
+    setEditSemesterForm(null);
+  };
+
+  const handleSemesterEditSave = async (e) => {
+    e.preventDefault();
+    setSemesterActionError('');
+    setSaving(true);
+    try {
+      await api.updateSemester(editingSemesterId, {
+        name: editSemesterForm.name,
+        startDate: editSemesterForm.startDate,
+        endDate: editSemesterForm.endDate || null,
+        requiredAttendancePercentage: Number(editSemesterForm.requiredAttendancePercentage),
+      });
+      await refresh(); // in case this was the active semester and the threshold changed
+      await load();
+      closeSemesterEdit();
+    } catch (err) {
+      setSemesterActionError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSemesterDelete = async (s) => {
+    setSemesterActionError('');
+    const ok = await confirm({
+      title: `Delete "${s.name}"?`,
+      description: 'This permanently removes its subjects, timetable, and attendance history. This action cannot be undone.',
+      confirmLabel: 'Delete semester',
+    });
+    if (!ok) return;
+    try {
+      await api.deleteSemester(s._id);
+      await load();
+    } catch (err) {
+      setSemesterActionError(err.message);
+    }
+  };
+
   return (
     <div ref={reveal} className="flex flex-col gap-6">
+      {dialog}
       <div>
         <h1 className="font-display text-2xl font-semibold">Settings</h1>
         <p className="text-[var(--color-text-muted)] text-sm mt-1">Profile and semester management.</p>
@@ -319,24 +398,94 @@ export default function Settings() {
           </form>
         )}
 
+        {semesterActionError && <p className="text-[var(--color-danger)] text-sm mb-3">{semesterActionError}</p>}
+
         {semesters === null ? (
           <div className="flex justify-center py-6"><Spinner /></div>
         ) : (
           <div className="flex flex-col divide-y divide-[var(--color-border-soft)]">
-            {semesters.map((s) => (
-              <div key={s._id} className="flex items-center justify-between py-3 gap-4">
-                <div>
-                  <p className="font-medium">{s.name}</p>
-                  <p className="text-xs text-[var(--color-text-faint)]">
-                    {new Date(s.startDate).toISOString().slice(0, 10)}{s.endDate ? ` – ${new Date(s.endDate).toISOString().slice(0, 10)}` : ''}
-                  </p>
+            {semesters.map((s) =>
+              editingSemesterId === s._id ? (
+                <form key={s._id} onSubmit={handleSemesterEditSave} className="flex flex-col gap-3 py-4">
+                  <Input label="Semester name" value={editSemesterForm.name} onChange={(e) => setEditSemesterForm((f) => ({ ...f, name: e.target.value }))} required />
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input label="Start date" type="date" value={editSemesterForm.startDate} onChange={(e) => setEditSemesterForm((f) => ({ ...f, startDate: e.target.value }))} required />
+                    <Input label="End date (optional)" type="date" value={editSemesterForm.endDate} onChange={(e) => setEditSemesterForm((f) => ({ ...f, endDate: e.target.value }))} />
+                  </div>
+                  <Input label="Required attendance %" type="number" min={0} max={100} value={editSemesterForm.requiredAttendancePercentage} onChange={(e) => setEditSemesterForm((f) => ({ ...f, requiredAttendancePercentage: e.target.value }))} required className="w-40" />
+                  <div className="flex gap-2">
+                    <Button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save changes'}</Button>
+                    <Button type="button" variant="ghost" onClick={closeSemesterEdit}>Cancel</Button>
+                  </div>
+                </form>
+              ) : (
+                <div key={s._id} className="flex items-center justify-between py-3 gap-4 flex-wrap">
+                  <button type="button" onClick={() => openSemesterDetail(s)} className="text-left flex-1 min-w-0 hover:opacity-80 transition-opacity">
+                    <p className="font-medium">{s.name}</p>
+                    <p className="text-xs text-[var(--color-text-faint)]">
+                      {new Date(s.startDate).toISOString().slice(0, 10)}{s.endDate ? ` – ${new Date(s.endDate).toISOString().slice(0, 10)}` : ''} · Required {s.requiredAttendancePercentage}%
+                    </p>
+                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Badge tone={s.status === 'active' ? 'safe' : 'neutral'}>{s.status}</Badge>
+                    <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={() => openSemesterEdit(s)}>Edit</Button>
+                    {s.status !== 'active' && (
+                      <Button variant="danger" className="!px-3 !py-1.5 text-xs" onClick={() => handleSemesterDelete(s)}>Delete</Button>
+                    )}
+                  </div>
                 </div>
-                <Badge tone={s.status === 'active' ? 'safe' : 'neutral'}>{s.status}</Badge>
-              </div>
-            ))}
+              )
+            )}
           </div>
         )}
       </Card>
+
+      {viewingSemester && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={closeSemesterDetail}>
+          <div className="glass-raised rounded-2xl p-5 w-full max-w-lg max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-1">
+              <p className="font-display font-semibold text-lg">{viewingSemester.name}</p>
+              <button onClick={closeSemesterDetail} className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-sm">Close</button>
+            </div>
+            <p className="text-xs text-[var(--color-text-faint)] mb-5">
+              {new Date(viewingSemester.startDate).toISOString().slice(0, 10)}{viewingSemester.endDate ? ` – ${new Date(viewingSemester.endDate).toISOString().slice(0, 10)}` : ''}
+            </p>
+
+            {detailLoading ? (
+              <div className="flex justify-center py-10"><Spinner /></div>
+            ) : semesterDetail?.error ? (
+              <p className="text-[var(--color-danger)] text-sm">{semesterDetail.error}</p>
+            ) : semesterDetail ? (
+              <div className="flex flex-col gap-5">
+                <div>
+                  <div className="flex justify-between items-baseline mb-1.5">
+                    <span className="text-sm text-[var(--color-text-muted)]">Overall attendance</span>
+                    <span className="mono-num text-xl font-bold">{semesterDetail.overall.percentage}%</span>
+                  </div>
+                  <ProgressBar value={semesterDetail.overall.percentage} requiredValue={semesterDetail.requiredAttendancePercentage} />
+                  <p className="text-xs text-[var(--color-text-faint)] mt-1.5">{semesterDetail.overall.attended}/{semesterDetail.overall.conducted} attended · required {semesterDetail.requiredAttendancePercentage}%</p>
+                </div>
+
+                <div>
+                  <p className="text-sm font-medium mb-2">Subjects</p>
+                  {semesterDetail.subjects.length === 0 ? (
+                    <p className="text-xs text-[var(--color-text-faint)]">No subjects were added in this semester.</p>
+                  ) : (
+                    <div className="flex flex-col gap-2.5">
+                      {semesterDetail.subjects.map((s) => (
+                        <div key={s.subject.id} className="flex items-center justify-between text-sm">
+                          <span className="min-w-0 truncate">{s.subject.name}</span>
+                          <span className="mono-num text-[var(--color-text-muted)] shrink-0 ml-3">{s.attended}/{s.conducted} · {s.percentage}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -59,6 +59,9 @@ export const api = {
   completeSetup: (payload) => request('/setup', { method: 'POST', body: payload }),
   startNewSemester: (payload) => request('/setup/new-semester', { method: 'POST', body: payload }),
   listSemesters: () => request('/setup/semesters'),
+  updateSemester: (id, payload) => request(`/setup/semesters/${id}`, { method: 'PATCH', body: payload }),
+  deleteSemester: (id) => request(`/setup/semesters/${id}`, { method: 'DELETE' }),
+  semesterOverview: (id) => request(`/attendance/semesters/${id}/overview`),
   updateAttendanceThreshold: (requiredAttendancePercentage) =>
     request('/setup/attendance-threshold', { method: 'PATCH', body: { requiredAttendancePercentage } }),
 
@@ -93,7 +96,16 @@ export const api = {
   // Holidays
   listHolidays: () => request('/holidays'),
   createHoliday: (payload) => request('/holidays', { method: 'POST', body: payload }),
+  createHolidayRange: (payload) => request('/holidays/range', { method: 'POST', body: payload }),
+  updateHoliday: (id, payload) => request(`/holidays/${id}`, { method: 'PATCH', body: payload }),
   deleteHoliday: (id) => request(`/holidays/${id}`, { method: 'DELETE' }),
+
+  // Exams
+  listExams: () => request('/exams'),
+  createExam: (payload) => request('/exams', { method: 'POST', body: payload }),
+  createExamRange: (payload) => request('/exams/range', { method: 'POST', body: payload }),
+  updateExam: (id, payload) => request(`/exams/${id}`, { method: 'PATCH', body: payload }),
+  deleteExam: (id) => request(`/exams/${id}`, { method: 'DELETE' }),
 
   // Rooms
   listRooms: () => request('/rooms'),

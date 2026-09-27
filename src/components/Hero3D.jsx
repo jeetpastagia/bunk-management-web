@@ -4,9 +4,10 @@ import { Float } from '@react-three/drei';
 import { useDeviceTier } from '../hooks/useMotionPreferences';
 
 /**
- * The floating brand shape: a torus knot in the app's brand purple, always
- * slowly rotating (Float, for the "subtle floating/rotation" requirement)
- * and gently easing toward wherever the pointer is (state.pointer is R3F's
+ * The floating brand shape: a dark graphite/gunmetal torus knot (matching
+ * the app's black/dark-gray theme — no blue/purple accent), always slowly
+ * rotating (Float, for the "subtle floating/rotation" requirement) and
+ * gently easing toward wherever the pointer is (state.pointer is R3F's
  * built-in normalized -1..1 pointer position — no extra event listeners
  * needed). Geometry segment count drops sharply on low-tier devices.
  */
@@ -28,7 +29,7 @@ function BrandShape({ lowDetail }) {
     <Float speed={1.4} rotationIntensity={0.35} floatIntensity={0.7}>
       <mesh ref={meshRef}>
         <torusKnotGeometry args={[1, 0.32, lowDetail ? 64 : 180, lowDetail ? 8 : 24]} />
-        <meshStandardMaterial color="#6E5BFF" roughness={0.25} metalness={0.55} emissive="#231a66" emissiveIntensity={0.4} />
+        <meshStandardMaterial color="#3F3F46" roughness={0.3} metalness={0.75} emissive="#0A0A0C" emissiveIntensity={0.3} />
       </mesh>
     </Float>
   );
@@ -51,9 +52,9 @@ export default function Hero3D({ className = '' }) {
         gl={{ antialias: tier !== 'low', alpha: true, powerPreference: 'low-power' }}
         camera={{ position: [0, 0, 4.5], fov: 45 }}
       >
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[3, 3, 4]} intensity={1.1} color="#8B7BFF" />
-        <pointLight position={[-3, -2, -2]} intensity={0.6} color="#F2B84B" />
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[3, 3, 4]} intensity={1.2} color="#E4E4E7" />
+        <pointLight position={[-3, -2, -2]} intensity={0.5} color="#8F8F97" />
         <Suspense fallback={null}>
           <BrandShape lowDetail={tier === 'low'} />
         </Suspense>

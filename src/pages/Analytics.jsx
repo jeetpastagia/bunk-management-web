@@ -1,11 +1,18 @@
 import { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { api } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import { Card, Spinner, ProgressBar, Badge } from '../components/ui';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 
 export default function Analytics() {
   const reveal = useScrollReveal();
+  const { user } = useAuth();
+  // The user's real required attendance % (kept in sync with the active
+  // semester's threshold — see Settings). Previously this page hardcoded
+  // 75/83 regardless of what the user actually set, so anyone with a
+  // custom threshold (e.g. 80%) saw incorrectly-colored subjects/faculty.
+  const requiredPct = user?.requiredAttendancePercentage ?? 75;
   const [tab, setTab] = useState('subjects');
   const [subjects, setSubjects] = useState(null);
   const [faculty, setFaculty] = useState(null);
@@ -28,11 +35,11 @@ export default function Analytics() {
       </div>
 
       {tab === 'subjects' ? (
-        !subjects ? <div className="flex justify-center py-16"><Spinner size={32} /></div> : <SubjectsView subjects={subjects} />
+        !subjects ? <div className="flex justify-center py-16"><Spinner size={32} /></div> : <SubjectsView subjects={subjects} requiredPct={requiredPct} />
       ) : !faculty ? (
         <div className="flex justify-center py-16"><Spinner size={32} /></div>
       ) : (
-        <FacultyView data={faculty} />
+        <FacultyView data={faculty} requiredPct={requiredPct} />
       )}
     </div>
   );
@@ -49,7 +56,7 @@ function TabButton({ active, children, ...props }) {
   );
 }
 
-function SubjectsView({ subjects }) {
+function SubjectsView({ subjects, requiredPct }) {
   if (subjects.length === 0) return <Card><p className="text-[var(--color-text-muted)] text-sm">No subjects yet.</p></Card>;
 
   const chartData = subjects.map((s) => ({ name: s.subject.name, percentage: s.percentage }));
@@ -67,7 +74,7 @@ function SubjectsView({ subjects }) {
               <Tooltip contentStyle={{ background: 'var(--color-surface-raised)', border: '1px solid var(--chart-axis)', borderRadius: 12, fontSize: 12, color: 'var(--color-text)' }} />
               <Bar dataKey="percentage" radius={[6, 6, 0, 0]}>
                 {chartData.map((d, i) => (
-                  <Cell key={i} fill={d.percentage < 75 ? 'var(--color-danger)' : d.percentage < 83 ? 'var(--color-risky)' : 'var(--color-safe)'} />
+                  <Cell key={i} fill={d.percentage < requiredPct ? 'var(--color-danger)' : d.percentage < requiredPct + 5 ? 'var(--color-risky)' : 'var(--color-safe)'} />
                 ))}
               </Bar>
             </BarChart>
@@ -85,7 +92,7 @@ function SubjectsView({ subjects }) {
               </div>
               <span className="mono-num text-xl font-bold">{s.percentage}%</span>
             </div>
-            <ProgressBar value={s.percentage} />
+            <ProgressBar value={s.percentage} requiredValue={requiredPct} />
             <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-2.5">
               <span>{s.attended}/{s.conducted} attended</span>
               <span>{Number.isFinite(s.safeBunksRemaining) ? `${s.safeBunksRemaining} safe bunks` : `${s.lecturesNeeded} needed`}</span>
@@ -97,7 +104,7 @@ function SubjectsView({ subjects }) {
   );
 }
 
-function FacultyView({ data }) {
+function FacultyView({ data, requiredPct }) {
   if (!data.faculty || data.faculty.length === 0) return <Card><p className="text-[var(--color-text-muted)] text-sm">No faculty data yet.</p></Card>;
 
   return (
@@ -125,7 +132,7 @@ function FacultyView({ data }) {
                 <span className="font-medium">{f.facultyName}</span>
               </div>
               <div className="flex items-center gap-3">
-                <Badge tone={f.percentage < 75 ? 'danger' : f.percentage < 83 ? 'risky' : 'safe'}>{f.percentage}%</Badge>
+                <Badge tone={f.percentage < requiredPct ? 'danger' : f.percentage < requiredPct + 5 ? 'risky' : 'safe'}>{f.percentage}%</Badge>
                 <span className="text-xs text-[var(--color-text-faint)] mono-num w-16 text-right">{f.attended}/{f.conducted}</span>
               </div>
             </div>

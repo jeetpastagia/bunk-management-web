@@ -3,26 +3,28 @@
 
 @theme {
   /* ---- Base (dark — the default look) ---- */
-  --color-bg: #0B0E14;
-  --color-surface: #131720;
-  --color-surface-raised: #171C27;
+  --color-bg: #09090B;
+  --color-surface: #131315;
+  --color-surface-raised: #1C1C1F;
   --color-border: rgba(255, 255, 255, 0.08);
   --color-border-soft: rgba(255, 255, 255, 0.05);
 
-  /* ---- Brand ---- */
-  --color-brand: #6E5BFF;
-  --color-brand-soft: #8B7BFF;
+  /* ---- Brand (black/dark-gray — no blue/purple accent) ---- */
+  --color-brand: #52525B;
+  --color-brand-soft: #A1A1AA;
   --color-amber: #F2B84B;
 
-  /* ---- Semantic (attendance zones) ---- */
+  /* ---- Semantic (attendance zones) — kept as real color, not grayscale:
+     these convey meaning (safe/risky/danger), so desaturating them would
+     make attendance status harder to read at a glance, not more premium. */
   --color-safe: #3ECF8E;
   --color-risky: #F2B84B;
   --color-danger: #FF5C6C;
 
   /* ---- Text ---- */
-  --color-text: #EDEFF5;
-  --color-text-muted: #8A90A3;
-  --color-text-faint: #565C6E;
+  --color-text: #EDEDEF;
+  --color-text-muted: #8F8F97;
+  --color-text-faint: #55555B;
 
   /* ---- Chrome (glass surfaces, scrollbar, selection, background glow) ---- */
   --glass-bg: rgba(255, 255, 255, 0.04);
@@ -31,8 +33,8 @@
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
   --selection-bg: var(--color-brand);
   --selection-text: white;
-  --bg-glow-1: rgba(110, 91, 255, 0.14);
-  --bg-glow-2: rgba(242, 184, 75, 0.08);
+  --bg-glow-1: rgba(255, 255, 255, 0.05);
+  --bg-glow-2: rgba(255, 255, 255, 0.025);
 
   /* Subtle neutral overlay tints for panels/hovers on top of --color-surface
      (e.g. bg-[var(--tint-8)]) — white-based on dark, ink-based on light, so
@@ -66,8 +68,8 @@
     --color-border: rgba(15, 23, 42, 0.10);
     --color-border-soft: rgba(15, 23, 42, 0.06);
 
-    --color-brand: #6E5BFF;
-    --color-brand-soft: #5B46E0;
+    --color-brand: #3F3F46;
+    --color-brand-soft: #52525B;
     --color-amber: #A9660E;
 
     --color-safe: #1E9E6B;
@@ -84,8 +86,8 @@
     --scrollbar-thumb-hover: rgba(15, 23, 42, 0.26);
     --selection-bg: var(--color-brand);
     --selection-text: white;
-    --bg-glow-1: rgba(110, 91, 255, 0.10);
-    --bg-glow-2: rgba(169, 102, 14, 0.06);
+    --bg-glow-1: rgba(15, 23, 42, 0.05);
+    --bg-glow-2: rgba(15, 23, 42, 0.025);
 
     --tint-5: rgba(15, 23, 42, 0.04);
     --tint-6: rgba(15, 23, 42, 0.05);
@@ -110,8 +112,8 @@
   --color-border: rgba(15, 23, 42, 0.10);
   --color-border-soft: rgba(15, 23, 42, 0.06);
 
-  --color-brand: #6E5BFF;
-  --color-brand-soft: #5B46E0;
+  --color-brand: #3F3F46;
+  --color-brand-soft: #52525B;
   --color-amber: #A9660E;
 
   --color-safe: #1E9E6B;
@@ -128,8 +130,8 @@
   --scrollbar-thumb-hover: rgba(15, 23, 42, 0.26);
   --selection-bg: var(--color-brand);
   --selection-text: white;
-  --bg-glow-1: rgba(110, 91, 255, 0.10);
-  --bg-glow-2: rgba(169, 102, 14, 0.06);
+  --bg-glow-1: rgba(15, 23, 42, 0.05);
+  --bg-glow-2: rgba(15, 23, 42, 0.025);
 
   --tint-5: rgba(15, 23, 42, 0.04);
   --tint-6: rgba(15, 23, 42, 0.05);

@@ -104,7 +104,8 @@ export function Badge({ children, tone = 'neutral' }) {
 }
 
 export function ProgressBar({ value, requiredValue = 75 }) {
-  const tone = value < requiredValue ? 'var(--color-danger)' : value < requiredValue + 8 ? 'var(--color-risky)' : 'var(--color-safe)';
+  // +5 matches attendanceEngine.classify()'s "risky" cushion on the backend — kept identical so a subject never reads as one color on Analytics and another on the Dashboard.
+  const tone = value < requiredValue ? 'var(--color-danger)' : value < requiredValue + 5 ? 'var(--color-risky)' : 'var(--color-safe)';
   return (
     <div className="h-1.5 w-full rounded-full bg-[var(--tint-8)] overflow-hidden relative">
       <div

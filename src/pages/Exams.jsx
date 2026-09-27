@@ -4,13 +4,13 @@ import { Card, Button, Input, Select, Spinner, EmptyState, Badge } from '../comp
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { useConfirm } from '../hooks/useConfirm';
 
-const emptyForm = { date: '', name: '', type: 'manual' };
-const emptyRangeForm = { startDate: '', endDate: '', name: '', type: 'manual' };
+const emptyForm = { date: '', name: '', type: 'internal' };
+const emptyRangeForm = { startDate: '', endDate: '', name: '', type: 'internal' };
 
-export default function Holidays() {
+export default function Exams() {
   const reveal = useScrollReveal();
   const { confirm, dialog } = useConfirm();
-  const [holidays, setHolidays] = useState(null);
+  const [exams, setExams] = useState(null);
   const [rangeMode, setRangeMode] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [rangeForm, setRangeForm] = useState(emptyRangeForm);
@@ -19,7 +19,7 @@ export default function Holidays() {
   const [message, setMessage] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const load = async () => setHolidays((await api.listHolidays()).holidays);
+  const load = async () => setExams((await api.listExams()).exams);
   useEffect(() => { load(); }, []);
 
   const resetForms = () => {
@@ -35,18 +35,18 @@ export default function Holidays() {
     setSaving(true);
     try {
       if (editingId) {
-        await api.updateHoliday(editingId, form);
-        setMessage('Holiday updated.');
+        await api.updateExam(editingId, form);
+        setMessage('Exam updated.');
       } else if (rangeMode) {
-        const res = await api.createHolidayRange(rangeForm);
+        const res = await api.createExamRange(rangeForm);
         setMessage(
           res.createdCount === 0
-            ? 'No new holidays added — every date in that range was already registered.'
-            : `Added ${res.createdCount} holiday${res.createdCount === 1 ? '' : 's'}${res.skippedCount ? ` (${res.skippedCount} already existed)` : ''}.`
+            ? 'No new exam dates added — every date in that range was already registered.'
+            : `Added ${res.createdCount} exam date${res.createdCount === 1 ? '' : 's'}${res.skippedCount ? ` (${res.skippedCount} already existed)` : ''}.`
         );
       } else {
-        await api.createHoliday(form);
-        setMessage('Holiday added.');
+        await api.createExam(form);
+        setMessage('Exam date added.');
       }
       resetForms();
       await load();
@@ -57,20 +57,20 @@ export default function Holidays() {
     }
   };
 
-  const handleEdit = (h) => {
-    setEditingId(h._id);
+  const handleEdit = (ex) => {
+    setEditingId(ex._id);
     setRangeMode(false);
-    setForm({ date: new Date(h.date).toISOString().slice(0, 10), name: h.name, type: h.type });
+    setForm({ date: new Date(ex.date).toISOString().slice(0, 10), name: ex.name, type: ex.type });
   };
 
   const handleDelete = async (id) => {
     const ok = await confirm({
-      title: 'Remove this holiday?',
+      title: 'Remove this exam date?',
       description: 'Lectures on that date go back to being markable normally.',
-      confirmLabel: 'Remove holiday',
+      confirmLabel: 'Remove exam date',
     });
     if (!ok) return;
-    await api.deleteHoliday(id);
+    await api.deleteExam(id);
     await load();
   };
 
@@ -78,13 +78,13 @@ export default function Holidays() {
     <div ref={reveal} className="flex flex-col gap-6">
       {dialog}
       <div>
-        <h1 className="font-display text-2xl font-semibold">Holidays</h1>
-        <p className="text-[var(--color-text-muted)] text-sm mt-1">Holiday lectures never affect your attendance.</p>
+        <h1 className="font-display text-2xl font-semibold">Exams</h1>
+        <p className="text-[var(--color-text-muted)] text-sm mt-1">Exam-period lectures never affect your attendance, same as holidays.</p>
       </div>
 
       <Card>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display font-semibold">{editingId ? 'Edit holiday' : 'Add a holiday'}</h2>
+          <h2 className="font-display font-semibold">{editingId ? 'Edit exam date' : 'Add an exam date'}</h2>
           {!editingId && (
             <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={() => { setRangeMode((v) => !v); setError(''); }}>
               {rangeMode ? 'Single date' : 'Group (date range)'}
@@ -96,25 +96,27 @@ export default function Holidays() {
           <form onSubmit={handleSubmit} className="grid sm:grid-cols-5 gap-3 items-end">
             <Input label="From" type="date" value={rangeForm.startDate} onChange={(e) => setRangeForm((f) => ({ ...f, startDate: e.target.value }))} required />
             <Input label="To" type="date" value={rangeForm.endDate} onChange={(e) => setRangeForm((f) => ({ ...f, endDate: e.target.value }))} required />
-            <Input label="Name" placeholder="e.g. Diwali break" value={rangeForm.name} onChange={(e) => setRangeForm((f) => ({ ...f, name: e.target.value }))} required />
+            <Input label="Name" placeholder="e.g. Mid-semester exams" value={rangeForm.name} onChange={(e) => setRangeForm((f) => ({ ...f, name: e.target.value }))} required />
             <Select label="Type" value={rangeForm.type} onChange={(e) => setRangeForm((f) => ({ ...f, type: e.target.value }))}>
-              <option value="manual">Manual</option>
-              <option value="college">College</option>
-              <option value="national">National</option>
+              <option value="internal">Internal</option>
+              <option value="midterm">Midterm</option>
+              <option value="final">Final</option>
+              <option value="other">Other</option>
             </Select>
             <Button type="submit" disabled={saving}>{saving ? 'Adding…' : 'Add all dates'}</Button>
           </form>
         ) : (
           <form onSubmit={handleSubmit} className="grid sm:grid-cols-4 gap-3 items-end">
             <Input label="Date" type="date" value={form.date} onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))} required />
-            <Input label="Name" placeholder="e.g. Diwali" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required />
+            <Input label="Name" placeholder="e.g. DBMS final" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required />
             <Select label="Type" value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}>
-              <option value="manual">Manual</option>
-              <option value="college">College</option>
-              <option value="national">National</option>
+              <option value="internal">Internal</option>
+              <option value="midterm">Midterm</option>
+              <option value="final">Final</option>
+              <option value="other">Other</option>
             </Select>
             <div className="flex gap-2">
-              <Button type="submit" disabled={saving}>{saving ? 'Saving…' : editingId ? 'Save changes' : 'Add holiday'}</Button>
+              <Button type="submit" disabled={saving}>{saving ? 'Saving…' : editingId ? 'Save changes' : 'Add exam date'}</Button>
               {editingId && <Button type="button" variant="ghost" onClick={resetForms}>Cancel</Button>}
             </div>
           </form>
@@ -124,22 +126,22 @@ export default function Holidays() {
       </Card>
 
       <Card>
-        {holidays === null ? (
+        {exams === null ? (
           <div className="flex justify-center py-10"><Spinner /></div>
-        ) : holidays.length === 0 ? (
-          <EmptyState title="No holidays added" hint="Add college or national holidays so they're excluded from attendance calculations." />
+        ) : exams.length === 0 ? (
+          <EmptyState title="No exam dates added" hint="Add exam periods so those days are excluded from attendance calculations." />
         ) : (
           <div className="flex flex-col divide-y divide-[var(--color-border-soft)]">
-            {holidays.map((h) => (
-              <div key={h._id} className="flex items-center justify-between py-3 gap-4 flex-wrap">
+            {exams.map((ex) => (
+              <div key={ex._id} className="flex items-center justify-between py-3 gap-4 flex-wrap">
                 <div className="flex items-center gap-3">
-                  <span className="mono-num text-sm text-[var(--color-text-muted)] w-24">{new Date(h.date).toISOString().slice(0, 10)}</span>
-                  <span className="font-medium">{h.name}</span>
-                  <Badge tone="neutral">{h.type}</Badge>
+                  <span className="mono-num text-sm text-[var(--color-text-muted)] w-24">{new Date(ex.date).toISOString().slice(0, 10)}</span>
+                  <span className="font-medium">{ex.name}</span>
+                  <Badge tone="brand">{ex.type}</Badge>
                 </div>
                 <div className="flex gap-2 shrink-0">
-                  <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={() => handleEdit(h)}>Edit</Button>
-                  <Button variant="danger" className="!px-3 !py-1.5 text-xs" onClick={() => handleDelete(h._id)}>Remove</Button>
+                  <Button variant="ghost" className="!px-3 !py-1.5 text-xs" onClick={() => handleEdit(ex)}>Edit</Button>
+                  <Button variant="danger" className="!px-3 !py-1.5 text-xs" onClick={() => handleDelete(ex._id)}>Remove</Button>
                 </div>
               </div>
             ))}
