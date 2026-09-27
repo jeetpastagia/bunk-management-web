@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -8,6 +9,8 @@ import { useScrollReveal } from '../hooks/useScrollReveal';
 export default function Analytics() {
   const reveal = useScrollReveal();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const highlightSubjectId = searchParams.get('subject');
   // The user's real required attendance % (kept in sync with the active
   // semester's threshold — see Settings). Previously this page hardcoded
   // 75/83 regardless of what the user actually set, so anyone with a
@@ -21,6 +24,21 @@ export default function Analytics() {
     api.subjectAnalytics().then((r) => setSubjects(r.subjects));
     api.facultyAnalytics().then((r) => setFaculty(r));
   }, []);
+
+  // Jumped here from the top-nav search with a specific subject — switch to
+  // the Subjects tab (in case Faculty was last selected) and scroll/highlight it.
+  useEffect(() => {
+    if (!highlightSubjectId || !subjects) return;
+    setTab('subjects');
+    const el = document.getElementById(`subject-${highlightSubjectId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('ring-2', 'ring-[var(--color-brand)]');
+      const timeout = setTimeout(() => el.classList.remove('ring-2', 'ring-[var(--color-brand)]'), 2500);
+      return () => clearTimeout(timeout);
+    }
+    return undefined;
+  }, [highlightSubjectId, subjects]);
 
   return (
     <div ref={reveal} className="flex flex-col gap-6">
@@ -84,7 +102,7 @@ function SubjectsView({ subjects, requiredPct }) {
 
       <div className="grid md:grid-cols-2 gap-4">
         {subjects.map((s) => (
-          <Card key={s.subject.id}>
+          <Card key={s.subject.id} id={`subject-${s.subject.id}`} className="transition-shadow duration-300">
             <div className="flex justify-between items-start mb-2">
               <div>
                 <p className="font-medium">{s.subject.name}</p>

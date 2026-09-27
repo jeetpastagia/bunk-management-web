@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
+import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { usePrefersReducedMotion } from '../hooks/useMotionPreferences';
 import NotificationBell from './NotificationBell';
@@ -120,16 +121,127 @@ function UserMenu() {
   );
 }
 
-export default function AppShell() {
-  const navigate = useNavigate();
-  const sidebarNavRef = useRef(null);
-  const [searchValue, setSearchValue] = useState('');
+const MAX_SEARCH_RESULTS = 8;
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const q = searchValue.trim();
-    navigate(q ? `/subjects?search=${encodeURIComponent(q)}` : '/subjects');
+/**
+ * Omni-search over everything actually in the app: every nav page (by
+ * label — typing "analytics" surfaces the Analytics page) plus every real
+ * subject (by name/code/faculty — typing "ardbms" surfaces that subject),
+ * fetched once per session since the list is small and rarely changes
+ * mid-session. Selecting a subject deep-links into Analytics and
+ * scrolls/highlights that exact subject's card (see Analytics.jsx).
+ */
+function GlobalSearch() {
+  const navigate = useNavigate();
+  const [subjects, setSubjects] = useState([]);
+  const [value, setValue] = useState('');
+  const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    api.listSubjects().then((res) => setSubjects(res.subjects || [])).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
+
+  const results = useMemo(() => {
+    const q = value.trim().toLowerCase();
+    if (!q) return [];
+
+    const pageMatches = NAV_ITEMS.filter((item) => item.label.toLowerCase().includes(q)).map((item) => ({
+      type: 'page',
+      key: `page-${item.to}`,
+      label: item.label,
+      sub: 'Page',
+      icon: item.icon,
+      go: () => navigate(item.to),
+    }));
+
+    const subjectMatches = subjects
+      .filter((s) => [s.name, s.code, s.facultyName].filter(Boolean).some((f) => f.toLowerCase().includes(q)))
+      .map((s) => ({
+        type: 'subject',
+        key: `subject-${s._id}`,
+        label: s.name,
+        sub: s.facultyName ? `Subject · ${s.facultyName}` : 'Subject',
+        icon: BookIcon,
+        go: () => navigate(`/analytics?subject=${s._id}`),
+      }));
+
+    return [...pageMatches, ...subjectMatches].slice(0, MAX_SEARCH_RESULTS);
+  }, [value, subjects, navigate]);
+
+  const select = (result) => {
+    if (!result) return;
+    result.go();
+    setValue('');
+    setOpen(false);
   };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIndex((i) => Math.min(i + 1, results.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIndex((i) => Math.max(i - 1, 0));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      select(results[activeIndex] || results[0]);
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+    }
+  };
+
+  return (
+    <div className="flex-1 max-w-md relative" ref={containerRef}>
+      <SearchIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] pointer-events-none" />
+      <input
+        type="search"
+        value={value}
+        onChange={(e) => { setValue(e.target.value); setOpen(true); setActiveIndex(0); }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={handleKeyDown}
+        placeholder="Search subjects, pages…"
+        className="w-full bg-[var(--tint-5)] border border-[var(--color-border)] rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)] transition-colors placeholder:text-[var(--color-text-faint)]"
+      />
+
+      {open && value.trim() && (
+        <div className="absolute left-0 right-0 mt-2 glass-raised rounded-2xl overflow-hidden z-30 max-h-80 overflow-y-auto">
+          {results.length === 0 ? (
+            <p className="px-4 py-3 text-sm text-[var(--color-text-faint)]">No matches for "{value.trim()}"</p>
+          ) : (
+            results.map((r, i) => (
+              <button
+                key={r.key}
+                onMouseEnter={() => setActiveIndex(i)}
+                onClick={() => select(r)}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${i === activeIndex ? 'bg-[var(--tint-8)]' : 'hover:bg-[var(--tint-5)]'}`}
+              >
+                <r.icon className="w-4 h-4 text-[var(--color-brand)] shrink-0" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-medium truncate">{r.label}</span>
+                  <span className="block text-xs text-[var(--color-text-faint)] truncate">{r.sub}</span>
+                </span>
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function AppShell() {
+  const sidebarNavRef = useRef(null);
 
   return (
     <div className="min-h-screen flex">
@@ -166,16 +278,7 @@ export default function AppShell() {
 
       <main className="flex-1 min-w-0 flex flex-col">
         <div className="hidden md:flex items-center gap-4 px-8 py-4 bg-[var(--color-sidebar)] border-b border-[var(--color-border)] sticky top-0 z-20">
-          <form onSubmit={handleSearch} className="flex-1 max-w-md relative">
-            <SearchIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)]" />
-            <input
-              type="search"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              placeholder="Search subjects, classes…"
-              className="w-full bg-[var(--tint-5)] border border-[var(--color-border)] rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)] transition-colors placeholder:text-[var(--color-text-faint)]"
-            />
-          </form>
+          <GlobalSearch />
           <div className="flex-1" />
           <NotificationBell />
           <UserMenu />

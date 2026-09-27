@@ -2,10 +2,10 @@ import { usePointerTilt } from '../hooks/usePointerTilt';
 import { useMagneticHover } from '../hooks/useMagneticHover';
 
 /** Pass `tilt` to opt a card into the mouse-driven 3D tilt effect (desktop/hover-capable devices only, off under reduced-motion). */
-export function Card({ children, className = '', raised = false, tilt = false }) {
+export function Card({ children, className = '', raised = false, tilt = false, ...props }) {
   const tiltRef = usePointerTilt({ max: 6, lift: 4, disabled: !tilt });
   return (
-    <div ref={tiltRef} className={`${raised ? 'glass-raised' : 'glass'} rounded-2xl p-5 transition-colors duration-200 ${tilt ? 'tilt-card' : ''} ${className}`}>
+    <div ref={tiltRef} className={`${raised ? 'glass-raised' : 'glass'} rounded-2xl p-5 transition-colors duration-200 ${tilt ? 'tilt-card' : ''} ${className}`} {...props}>
       {children}
     </div>
   );
