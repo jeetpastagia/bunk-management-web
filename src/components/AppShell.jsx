@@ -4,6 +4,7 @@ import gsap from 'gsap';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { usePrefersReducedMotion } from '../hooks/useMotionPreferences';
+import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import NotificationBell from './NotificationBell';
 import PageTransition from './PageTransition';
 
@@ -240,6 +241,27 @@ function GlobalSearch() {
   );
 }
 
+/**
+ * Only renders at all when the browser has actually offered an install
+ * prompt (Chrome/Edge/Android) — Safari/iOS and Firefox never fire
+ * beforeinstallprompt, so there'd be nothing for a button to trigger
+ * there; a dead "Install" button is worse than no button.
+ */
+function InstallButton() {
+  const { canInstall, promptInstall } = useInstallPrompt();
+  if (!canInstall) return null;
+
+  return (
+    <button
+      onClick={promptInstall}
+      className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium bg-[var(--tint-5)] hover:bg-[var(--tint-10)] border border-[var(--color-border)] text-[var(--color-text)] transition-colors"
+    >
+      <DownloadIcon className="w-4 h-4 text-[var(--color-brand)]" />
+      <span className="hidden sm:inline">Install app</span>
+    </button>
+  );
+}
+
 export default function AppShell() {
   const sidebarNavRef = useRef(null);
 
@@ -280,12 +302,14 @@ export default function AppShell() {
         <div className="hidden md:flex items-center gap-4 px-8 py-4 bg-[var(--color-sidebar)] border-b border-[var(--color-border)] sticky top-0 z-20">
           <GlobalSearch />
           <div className="flex-1" />
+          <InstallButton />
           <NotificationBell />
           <UserMenu />
         </div>
 
         <div className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
           <div className="flex md:hidden justify-end items-center gap-2 mb-4">
+            <InstallButton />
             <NotificationBell />
             <UserMenu />
           </div>
@@ -332,3 +356,4 @@ function ExamIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="c
 function CapIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M2 9.5 12 5l10 4.5-10 4.5-10-4.5Z" strokeLinejoin="round"/><path d="M6 11.5V16c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-4.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M21 10v5" strokeLinecap="round"/></svg>; }
 function SearchIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2" strokeLinecap="round"/></svg>; }
 function ChevronDownIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}><path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
+function DownloadIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M12 3v12m0 0 4-4m-4 4-4-4" strokeLinecap="round" strokeLinejoin="round"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
