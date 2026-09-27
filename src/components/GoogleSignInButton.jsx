@@ -127,7 +127,7 @@ export default function GoogleSignInButton({ staySignedIn = true, onError }) {
       type="button"
       onClick={handleClick}
       disabled={!ready || signingIn}
-      className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-xl font-medium text-sm bg-[var(--tint-5)] hover:bg-[var(--tint-10)] text-[var(--color-text)] border border-[var(--color-border)] transition-all duration-150 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none"
+      className="w-full flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl font-medium text-base bg-[var(--tint-5)] hover:bg-[var(--tint-10)] text-[var(--color-text)] border border-[var(--color-border)] transition-all duration-150 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none"
     >
       <GoogleGIcon className="w-4.5 h-4.5 shrink-0" />
       {signingIn ? 'Signing in…' : ready ? 'Continue with Google' : 'Loading…'}

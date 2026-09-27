@@ -16,9 +16,32 @@ export function AuthProvider({ children }) {
     try {
       const { user } = await api.me();
       setUser(user);
-    } catch {
-      clearToken();
-      setUser(null);
+    } catch (err) {
+      if (err.status === 401 || err.status === 403) {
+        // The token itself is genuinely rejected (expired/invalid/deactivated) — safe to drop it.
+        clearToken();
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+      // Anything else (no err.status at all = the fetch itself failed —
+      // a network error, or a cold-starting free-tier backend timing
+      // out) is transient, not proof the token is bad. This is the root
+      // cause of "stay signed in" silently failing: reopening the app
+      // after it's been idle is exactly when Render's free instance is
+      // still waking up, so the very first request would fail and used
+      // to wipe out a perfectly valid persisted session over a timing
+      // issue. Give the backend a few seconds to wake up and retry once
+      // before actually giving up — and even then, keep the token so a
+      // manual refresh can still succeed once it's warm.
+      await new Promise((resolve) => setTimeout(resolve, 4000));
+      try {
+        const { user } = await api.me();
+        setUser(user);
+      } catch (err2) {
+        if (err2.status === 401 || err2.status === 403) clearToken();
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }

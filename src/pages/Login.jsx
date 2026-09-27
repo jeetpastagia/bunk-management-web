@@ -1,13 +1,8 @@
-import { lazy, Suspense, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Card, Button, Input } from '../components/ui';
 import GoogleSignInButton from '../components/GoogleSignInButton';
-import { usePrefersReducedMotion } from '../hooks/useMotionPreferences';
-
-// Lazy so the ~150KB+ of Three.js/R3F code only ever loads on the
-// auth screens that actually show it, never in the main app bundle.
-const Hero3D = lazy(() => import('../components/Hero3D'));
 
 export default function Login() {
   const { login } = useAuth();
@@ -34,9 +29,9 @@ export default function Login() {
 
   return (
     <AuthLayout>
-      <Card raised className="w-full max-w-sm">
-        <h1 className="font-display text-2xl font-semibold mb-1">Welcome back</h1>
-        <p className="text-[var(--color-text-muted)] text-sm mb-6">Log in to keep tracking your attendance.</p>
+      <Card raised className="w-full max-w-md">
+        <h1 className="font-display text-3xl font-semibold mb-2">Welcome back</h1>
+        <p className="text-[var(--color-text-muted)] text-base mb-6">Log in to keep tracking your attendance.</p>
 
         {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
           <>
@@ -67,20 +62,20 @@ export default function Login() {
           />
           {error && <p className="text-[var(--color-danger)] text-sm">{error}</p>}
           <div className="flex items-center justify-between -mt-2">
-            <label className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
+            <label className="flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
               <input type="checkbox" checked={staySignedIn} onChange={(e) => setStaySignedIn(e.target.checked)} />
               Stay signed in
             </label>
-            <Link to="/forgot-password" className="text-xs text-[var(--color-brand-soft)] hover:underline">
+            <Link to="/forgot-password" className="text-sm text-[var(--color-brand-soft)] hover:underline">
               Forgot password?
             </Link>
           </div>
-          <Button type="submit" disabled={loading} className="mt-1">
+          <Button type="submit" disabled={loading} className="mt-1 text-base">
             {loading ? 'Logging in…' : 'Log in'}
           </Button>
         </form>
 
-        <p className="text-center text-sm text-[var(--color-text-muted)] mt-6">
+        <p className="text-center text-base text-[var(--color-text-muted)] mt-6">
           New here? <Link to="/signup" className="text-[var(--color-brand-soft)] hover:underline">Create an account</Link>
         </p>
       </Card>
@@ -89,21 +84,13 @@ export default function Login() {
 }
 
 export function AuthLayout({ children }) {
-  const reducedMotion = usePrefersReducedMotion();
-
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
-      {!reducedMotion && (
-        <Suspense fallback={null}>
-          <Hero3D className="absolute inset-0 z-0 opacity-90" />
-        </Suspense>
-      )}
-
       <div className="relative z-10 mb-8 flex items-center gap-2.5">
-        <div className="w-10 h-10 rounded-xl bg-[var(--color-brand)] flex items-center justify-center font-display font-bold text-white text-lg">B</div>
+        <div className="w-11 h-11 rounded-xl bg-[var(--color-brand)] flex items-center justify-center font-display font-bold text-white text-xl">B</div>
         <div>
-          <div className="font-display font-semibold text-lg leading-tight">Bunk Manager</div>
-          <div className="text-[11px] text-[var(--color-text-faint)] tracking-wide">TRACK SMART · BUNK SMARTER · STAY ABOVE 75%</div>
+          <div className="font-display font-semibold text-xl leading-tight">Bunk Manager</div>
+          <div className="text-xs text-[var(--color-text-faint)] tracking-wide">TRACK SMART · BUNK SMARTER · STAY ABOVE 75%</div>
         </div>
       </div>
       <div className="relative z-10 w-full flex flex-col items-center">{children}</div>

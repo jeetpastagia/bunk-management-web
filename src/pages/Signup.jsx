@@ -30,9 +30,9 @@ export default function Signup() {
 
   return (
     <AuthLayout>
-      <Card raised className="w-full max-w-sm">
-        <h1 className="font-display text-2xl font-semibold mb-1">Create your account</h1>
-        <p className="text-[var(--color-text-muted)] text-sm mb-6">Start tracking lecture-wise attendance in minutes.</p>
+      <Card raised className="w-full max-w-md">
+        <h1 className="font-display text-3xl font-semibold mb-2">Create your account</h1>
+        <p className="text-[var(--color-text-muted)] text-base mb-6">Start tracking lecture-wise attendance in minutes.</p>
 
         {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
           <>
@@ -58,12 +58,12 @@ export default function Signup() {
             minLength={6}
           />
           {error && <p className="text-[var(--color-danger)] text-sm">{error}</p>}
-          <Button type="submit" disabled={loading} className="mt-1">
+          <Button type="submit" disabled={loading} className="mt-1 text-base">
             {loading ? 'Creating account…' : 'Create account'}
           </Button>
         </form>
 
-        <p className="text-center text-sm text-[var(--color-text-muted)] mt-6">
+        <p className="text-center text-base text-[var(--color-text-muted)] mt-6">
           Already have an account? <Link to="/login" className="text-[var(--color-brand-soft)] hover:underline">Log in</Link>
         </p>
       </Card>

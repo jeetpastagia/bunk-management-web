@@ -45,9 +45,9 @@ export default function ForgotPassword() {
 
   return (
     <AuthLayout>
-      <Card raised className="w-full max-w-sm">
-        <h1 className="font-display text-2xl font-semibold mb-1">Reset password</h1>
-        <p className="text-[var(--color-text-muted)] text-sm mb-6">
+      <Card raised className="w-full max-w-md">
+        <h1 className="font-display text-3xl font-semibold mb-2">Reset password</h1>
+        <p className="text-[var(--color-text-muted)] text-base mb-6">
           {step === 'request' ? "We'll send a one-time code to your email or mobile number." : 'Enter the OTP you received and a new password.'}
         </p>
 
@@ -55,7 +55,7 @@ export default function ForgotPassword() {
           <form onSubmit={requestOtp} className="flex flex-col gap-4">
             <Input label="Email or mobile number" placeholder="you@example.com or 9876543210" value={identifier} onChange={(e) => setIdentifier(e.target.value)} required />
             {error && <p className="text-[var(--color-danger)] text-sm">{error}</p>}
-            <Button type="submit" disabled={loading}>{loading ? 'Sending…' : 'Send OTP'}</Button>
+            <Button type="submit" disabled={loading} className="text-base">{loading ? 'Sending…' : 'Send OTP'}</Button>
           </form>
         ) : (
           <form onSubmit={resetPassword} className="flex flex-col gap-4">
@@ -63,11 +63,11 @@ export default function ForgotPassword() {
             <Input label="OTP" inputMode="numeric" maxLength={6} placeholder="6-digit code" value={otp} onChange={(e) => setOtp(e.target.value)} required />
             <Input label="New password" type="password" placeholder="At least 6 characters" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={6} />
             {error && <p className="text-[var(--color-danger)] text-sm">{error}</p>}
-            <Button type="submit" disabled={loading}>{loading ? 'Resetting…' : 'Reset password'}</Button>
+            <Button type="submit" disabled={loading} className="text-base">{loading ? 'Resetting…' : 'Reset password'}</Button>
           </form>
         )}
 
-        <p className="text-center text-sm text-[var(--color-text-muted)] mt-6">
+        <p className="text-center text-base text-[var(--color-text-muted)] mt-6">
           <Link to="/login" className="text-[var(--color-brand-soft)] hover:underline">Back to login</Link>
         </p>
       </Card>

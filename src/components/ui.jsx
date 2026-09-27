@@ -42,7 +42,7 @@ export function Button({ children, variant = 'primary', className = '', magnetic
 
 export function Input({ label, error, className = '', ...props }) {
   return (
-    <label className="flex flex-col gap-1.5 text-sm">
+    <label className="flex flex-col gap-1.5 text-base">
       {label && <span className="text-[var(--color-text-muted)] font-medium">{label}</span>}
       <input
         className={`bg-[var(--tint-5)] border rounded-xl px-3.5 py-2.5 outline-none placeholder:text-[var(--color-text-faint)] transition-colors ${
@@ -57,7 +57,7 @@ export function Input({ label, error, className = '', ...props }) {
 
 export function Select({ label, className = '', children, ...props }) {
   return (
-    <label className="flex flex-col gap-1.5 text-sm">
+    <label className="flex flex-col gap-1.5 text-base">
       {label && <span className="text-[var(--color-text-muted)] font-medium">{label}</span>}
       <select
         className={`bg-[var(--color-surface-raised)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 outline-none focus:border-[var(--color-brand)] ${className}`}
