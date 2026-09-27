@@ -59,7 +59,7 @@ export default function Dashboard() {
   if (error) return <Card className="text-[var(--color-danger)]">{error}</Card>;
   if (!data) return <div className="flex justify-center py-20"><Spinner size={32} /></div>;
 
-  const { overall, requiredAttendancePercentage, safeBunksRemaining, today, danger, monthlyDanger } = data;
+  const { overall, monthly, requiredAttendancePercentage, safeBunksRemaining, today, danger, monthlyDanger } = data;
   const firstName = user?.studentName?.split(' ')[0] || 'Student';
 
   const pieData = [
@@ -96,10 +96,11 @@ export default function Dashboard() {
         </Card>
       )}
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard icon={BookIcon} label="Total Subjects" value={subjectCount} sub="This semester" />
         <StatCard icon={CalendarIcon} label="Classes Today" value={today.lectures.length} sub={`${today.summary.attended} attended so far`} />
         <StatCard icon={GaugeIcon} label="Overall Attendance" value={`${overall.percentage}%`} sub={`${overall.attended}/${overall.conducted} conducted`} progress={overall.percentage} requiredValue={requiredAttendancePercentage} />
+        <StatCard icon={TrendIcon} label="Monthly Attendance" value={`${monthly.percentage}%`} sub={`${monthly.attended}/${monthly.conducted} this month`} progress={monthly.percentage} requiredValue={requiredAttendancePercentage} />
         <StatCard icon={ClockIcon} label="Safe Bunks Left" value={Number.isFinite(safeBunksRemaining) ? safeBunksRemaining : '∞'} sub="Across all subjects" />
       </div>
 
@@ -251,6 +252,7 @@ function BookIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="c
 function CalendarIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3 10h18" strokeLinecap="round"/></svg>; }
 function GaugeIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M4 14a8 8 0 1 1 16 0" strokeLinecap="round"/><path d="M12 14l4-4" strokeLinecap="round"/><circle cx="12" cy="14" r="1.3" fill="currentColor" stroke="none"/></svg>; }
 function ClockIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
+function TrendIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M3 17 9 11l4 4 8-8" strokeLinecap="round" strokeLinejoin="round"/><path d="M15 7h6v6" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
 function BoltIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" strokeLinejoin="round"/></svg>; }
 function ChartIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M4 20V10M12 20V4M20 20v-7" strokeLinecap="round"/></svg>; }
 function RoomIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="9" cy="7" r="3.5"/><path d="M20.5 20v-2a4 4 0 0 0-3-3.87M14.5 3.3a3.5 3.5 0 0 1 0 6.7" strokeLinecap="round"/></svg>; }
