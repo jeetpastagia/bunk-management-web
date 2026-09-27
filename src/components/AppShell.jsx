@@ -308,10 +308,13 @@ export default function AppShell() {
         </div>
 
         <div className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
-          <div className="flex md:hidden justify-end items-center gap-2 mb-4">
-            <InstallButton />
-            <NotificationBell />
-            <UserMenu />
+          <div className="flex md:hidden flex-col gap-3 mb-4">
+            <GlobalSearch />
+            <div className="flex justify-end items-center gap-2">
+              <InstallButton />
+              <NotificationBell />
+              <UserMenu />
+            </div>
           </div>
           <PageTransition>
             <Outlet />
