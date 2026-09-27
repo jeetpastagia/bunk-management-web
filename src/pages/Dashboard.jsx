@@ -59,7 +59,7 @@ export default function Dashboard() {
   if (error) return <Card className="text-[var(--color-danger)]">{error}</Card>;
   if (!data) return <div className="flex justify-center py-20"><Spinner size={32} /></div>;
 
-  const { overall, monthly, requiredAttendancePercentage, safeBunksRemaining, today, danger, monthlyDanger } = data;
+  const { overall, monthly, requiredAttendancePercentage, safeBunksRemaining, today, danger, monthlyDanger, semesterEndInfo } = data;
   const firstName = user?.studentName?.split(' ')[0] || 'Student';
 
   const pieData = [
@@ -93,6 +93,17 @@ export default function Dashboard() {
         <Card className="border-[var(--color-risky)]/40 bg-[var(--color-risky)]/8">
           <p className="font-semibold text-[var(--color-risky)]">Monthly attendance has dropped below {requiredAttendancePercentage}%</p>
           <p className="text-sm text-[var(--color-text-muted)] mt-1">Attend upcoming lectures to avoid warning letters.</p>
+        </Card>
+      )}
+
+      {semesterEndInfo && !semesterEndInfo.ended && !semesterEndInfo.achievable && (
+        <Card className="border-[var(--color-danger)]/40 bg-[var(--color-danger)]/8">
+          <p className="font-semibold text-[var(--color-danger)]">
+            Reaching {requiredAttendancePercentage}% by your semester end date ({new Date(semesterEndInfo.endDate).toISOString().slice(0, 10)}) is no longer mathematically possible
+          </p>
+          <p className="text-sm text-[var(--color-text-muted)] mt-1">
+            Only {semesterEndInfo.remainingLectures} lecture(s) remain — attending every one still only reaches {semesterEndInfo.bestPossiblePercentage}%. See Smart Tools for the full breakdown.
+          </p>
         </Card>
       )}
 

@@ -6,6 +6,7 @@ import { useScrollReveal } from '../hooks/useScrollReveal';
 export default function Tools() {
   const reveal = useScrollReveal();
   const [calc, setCalc] = useState(null);
+  const [semesterEndInfo, setSemesterEndInfo] = useState(null);
   const [simDate, setSimDate] = useState('');
   const [sim, setSim] = useState(null);
   const [simLoading, setSimLoading] = useState(false);
@@ -13,7 +14,10 @@ export default function Tools() {
 
   useEffect(() => {
     api.calculator().then(setCalc).catch((e) => setError(e.message));
+    api.overview().then((res) => setSemesterEndInfo(res.semesterEndInfo)).catch(() => {});
   }, []);
+
+  const maxSimDate = semesterEndInfo?.endDate ? new Date(semesterEndInfo.endDate).toISOString().slice(0, 10) : undefined;
 
   const runSimulation = async (e) => {
     e.preventDefault();
@@ -37,6 +41,25 @@ export default function Tools() {
       </div>
 
       {error && <p className="text-[var(--color-danger)] text-sm">{error}</p>}
+
+      {semesterEndInfo && !semesterEndInfo.ended && (
+        <Card className={semesterEndInfo.achievable ? 'border-[var(--color-safe)]/30 bg-[var(--color-safe)]/8' : 'border-[var(--color-danger)]/40 bg-[var(--color-danger)]/8'}>
+          <p className={`font-semibold ${semesterEndInfo.achievable ? 'text-[var(--color-safe)]' : 'text-[var(--color-danger)]'}`}>
+            {semesterEndInfo.achievable
+              ? `Reaching your target is still achievable by ${new Date(semesterEndInfo.endDate).toISOString().slice(0, 10)}`
+              : `Reaching your target is no longer mathematically possible by ${new Date(semesterEndInfo.endDate).toISOString().slice(0, 10)}`}
+          </p>
+          <p className="text-sm text-[var(--color-text-muted)] mt-1">
+            {semesterEndInfo.remainingLectures} lecture(s) remain in the timetable before the semester ends ({semesterEndInfo.daysRemaining} day(s) left).
+            Attending every one of them gets you to a best-case {semesterEndInfo.bestPossiblePercentage}%.
+          </p>
+        </Card>
+      )}
+      {semesterEndInfo?.ended && (
+        <Card className="border-[var(--color-border)]">
+          <p className="text-sm text-[var(--color-text-muted)]">This semester's end date has passed — consider archiving it and starting a new one in Settings.</p>
+        </Card>
+      )}
 
       {!calc ? (
         <div className="flex justify-center py-10"><Spinner size={28} /></div>
@@ -84,7 +107,7 @@ export default function Tools() {
         <h2 className="font-display font-semibold mb-1">Future lecture simulator</h2>
         <p className="text-sm text-[var(--color-text-muted)] mb-4">Pick a future date to see the extremes: bunk everything vs. attend everything that day.</p>
         <form onSubmit={runSimulation} className="flex items-end gap-3 flex-wrap">
-          <Input label="Date" type="date" value={simDate} onChange={(e) => setSimDate(e.target.value)} required />
+          <Input label="Date" type="date" value={simDate} onChange={(e) => setSimDate(e.target.value)} max={maxSimDate} required />
           <Button type="submit" disabled={simLoading}>{simLoading ? 'Simulating…' : 'Simulate'}</Button>
         </form>
 

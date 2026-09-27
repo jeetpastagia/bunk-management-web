@@ -115,6 +115,14 @@ function SubjectsView({ subjects, requiredPct }) {
               <span>{s.attended}/{s.conducted} attended</span>
               <span>{Number.isFinite(s.safeBunksRemaining) ? `${s.safeBunksRemaining} safe bunks` : `${s.lecturesNeeded} needed`}</span>
             </div>
+            {s.achievability && (
+              <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-[var(--color-border-soft)]">
+                <Badge tone={s.achievability.achievable ? 'safe' : 'danger'}>
+                  {s.achievability.achievable ? 'On track for term end' : `Best case ${s.achievability.bestPossiblePercentage}%`}
+                </Badge>
+                <span className="text-xs text-[var(--color-text-faint)]">{s.achievability.remainingLectures} left this term</span>
+              </div>
+            )}
           </Card>
         ))}
       </div>
