@@ -151,6 +151,25 @@
   --chart-track: rgba(16, 36, 29, 0.12);
 }
 
+/* Native browser/OS chrome (the date-input calendar popup, select dropdown
+   arrows, checkbox/radio ticks, scrollbar hints) is rendered outside the
+   page's DOM and can't be restyled with CSS to match our exact brass/green
+   palette — no website can. `color-scheme` is the one lever the platform
+   gives us: it tells the browser to draw that native chrome using its
+   built-in dark preset instead of always-light, which is what actually
+   fixes the "ugly white calendar popup on a dark page" problem. Tied to
+   the same data-theme attribute as everything else, so it flips with the
+   Settings theme switcher instead of only following the OS. */
+:root {
+  color-scheme: light dark; /* 'system' with no explicit choice: match the OS, same as the rest of the theme */
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
 html, body, #root {
   height: 100%;
 }
