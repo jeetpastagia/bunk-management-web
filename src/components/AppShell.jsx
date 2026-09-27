@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useAuth } from '../context/AuthContext';
 import { usePrefersReducedMotion } from '../hooks/useMotionPreferences';
@@ -16,16 +16,16 @@ const NAV_ITEMS = [
   { to: '/tools', label: 'Smart Tools', icon: BoltIcon },
   { to: '/holidays', label: 'Holidays', icon: SunIcon },
   { to: '/exams', label: 'Exams', icon: ExamIcon },
-  { to: '/rooms', label: 'Rooms', icon: RoomIcon },
+  { to: '/rooms', label: 'Study Room', icon: RoomIcon },
   { to: '/settings', label: 'Settings', icon: GearIcon },
 ];
 
 /**
- * A highlight pill that slides/resizes to sit behind whichever NavLink
- * currently has aria-current="page" (set automatically by NavLink itself,
- * so this never needs its own copy of the active-route matching logic).
- * Reading layout via getBoundingClientRect after each route change and
- * animating a single absolutely-positioned div is far cheaper than
+ * A solid brass highlight that slides/resizes to sit behind whichever
+ * NavLink currently has aria-current="page" (set automatically by NavLink
+ * itself, so this never needs its own copy of the active-route matching
+ * logic). Reading layout via getBoundingClientRect after each route change
+ * and animating a single absolutely-positioned div is far cheaper than
  * animating every nav item individually.
  */
 function ActiveNavIndicator({ containerRef }) {
@@ -60,16 +60,27 @@ function ActiveNavIndicator({ containerRef }) {
     <div
       ref={indicatorRef}
       aria-hidden="true"
-      className="absolute left-0 right-0 rounded-xl bg-[var(--color-brand)]/15 pointer-events-none opacity-0"
+      className="absolute left-0 right-0 rounded-xl bg-[var(--color-brand)] pointer-events-none opacity-0"
       style={{ top: 0, height: 0 }}
     />
   );
 }
 
-export default function AppShell() {
+/** Top-right avatar + name, opening a small dropdown with Settings/Logout — replaces the old sidebar-bottom user block to match the reference's top navbar layout. */
+function UserMenu() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const sidebarNavRef = useRef(null);
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
 
   const handleLogout = async () => {
     await logout();
@@ -77,10 +88,56 @@ export default function AppShell() {
   };
 
   return (
+    <div className="relative" ref={containerRef}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2.5 pl-1.5 pr-2 py-1 rounded-xl hover:bg-[var(--tint-5)] transition-colors"
+      >
+        <div className="w-9 h-9 rounded-full bg-[var(--color-brand)] flex items-center justify-center font-display font-semibold text-sm text-[var(--color-sidebar)]">
+          {(user?.studentName || 'U')[0].toUpperCase()}
+        </div>
+        <span className="hidden sm:block text-sm font-medium">{user?.studentName?.split(' ')[0] || 'Student'}</span>
+        <ChevronDownIcon className={`w-4 h-4 text-[var(--color-text-muted)] transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 mt-2 w-48 glass-raised rounded-2xl overflow-hidden z-30">
+          <button
+            onClick={() => { setOpen(false); navigate('/settings'); }}
+            className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-left hover:bg-[var(--tint-5)] transition-colors"
+          >
+            <GearIcon className="w-4 h-4 text-[var(--color-text-muted)]" /> Settings
+          </button>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-left text-[var(--color-danger)] hover:bg-[var(--tint-5)] transition-colors"
+          >
+            <LogoutIcon className="w-4 h-4" /> Log out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function AppShell() {
+  const navigate = useNavigate();
+  const sidebarNavRef = useRef(null);
+  const [searchValue, setSearchValue] = useState('');
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const q = searchValue.trim();
+    navigate(q ? `/subjects?search=${encodeURIComponent(q)}` : '/subjects');
+  };
+
+  return (
     <div className="min-h-screen flex">
-      <aside className="hidden md:flex w-64 shrink-0 flex-col glass-raised border-r border-[var(--color-border)] p-5 sticky top-0 h-screen">
+      <aside className="hidden md:flex w-64 shrink-0 flex-col bg-[var(--color-sidebar)] border-r border-[var(--color-border)] p-5 sticky top-0 h-screen">
         <div className="flex items-center gap-2.5 px-1 mb-8">
-          <div className="w-9 h-9 rounded-xl bg-[var(--color-brand)] flex items-center justify-center font-display font-bold text-white">B</div>
+          <div className="w-9 h-9 rounded-xl bg-[var(--color-brand)] flex items-center justify-center text-[var(--color-sidebar)]">
+            <CapIcon className="w-5 h-5" />
+          </div>
           <div>
             <div className="font-display font-semibold leading-tight">Bunk Manager</div>
             <div className="text-[10px] text-[var(--color-text-faint)] tracking-wide">TRACK SMART · BUNK SMARTER</div>
@@ -96,7 +153,7 @@ export default function AppShell() {
               end={to === '/'}
               className={({ isActive }) =>
                 `relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  isActive ? 'text-[var(--color-brand-soft)]' : 'text-[var(--color-text-muted)] hover:bg-[var(--tint-5)] hover:text-[var(--color-text)]'
+                  isActive ? 'text-[var(--color-sidebar)] font-semibold' : 'text-[var(--color-text-muted)] hover:bg-[var(--tint-5)] hover:text-[var(--color-text)]'
                 }`
               }
             >
@@ -105,39 +162,38 @@ export default function AppShell() {
             </NavLink>
           ))}
         </nav>
-
-        <div className="pt-4 border-t border-[var(--color-border-soft)] flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-[var(--tint-8)] flex items-center justify-center font-display font-semibold text-sm">
-            {(user?.studentName || 'U')[0].toUpperCase()}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium truncate">{user?.studentName || 'Student'}</div>
-            <div className="text-xs text-[var(--color-text-faint)] truncate">{user?.collegeName || ''}</div>
-          </div>
-          <button onClick={handleLogout} aria-label="Log out" className="text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors">
-            <LogoutIcon className="w-4.5 h-4.5" />
-          </button>
-        </div>
       </aside>
 
-      <main className="flex-1 min-w-0 p-4 md:p-8 pb-24 md:pb-8">
-        <div className="flex justify-end items-center gap-2 mb-4 md:mb-6">
+      <main className="flex-1 min-w-0 flex flex-col">
+        <div className="hidden md:flex items-center gap-4 px-8 py-4 bg-[var(--color-sidebar)] border-b border-[var(--color-border)] sticky top-0 z-20">
+          <form onSubmit={handleSearch} className="flex-1 max-w-md relative">
+            <SearchIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)]" />
+            <input
+              type="search"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              placeholder="Search subjects, classes…"
+              className="w-full bg-[var(--tint-5)] border border-[var(--color-border)] rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)] transition-colors placeholder:text-[var(--color-text-faint)]"
+            />
+          </form>
+          <div className="flex-1" />
           <NotificationBell />
-          <button
-            onClick={handleLogout}
-            aria-label="Log out"
-            className="md:hidden w-10 h-10 rounded-xl bg-[var(--tint-5)] hover:bg-[var(--tint-10)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors"
-          >
-            <LogoutIcon className="w-4.5 h-4.5" />
-          </button>
+          <UserMenu />
         </div>
-        <PageTransition>
-          <Outlet />
-        </PageTransition>
+
+        <div className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
+          <div className="flex md:hidden justify-end items-center gap-2 mb-4">
+            <NotificationBell />
+            <UserMenu />
+          </div>
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
+        </div>
       </main>
 
       {/* Mobile bottom nav: solid (not glass) so scrolling content behind it never bleeds through, and scrollable so all screens are reachable, not just the first 5. */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--color-bg)] border-t border-[var(--color-border)] flex overflow-x-auto py-2 z-20">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--color-sidebar)] border-t border-[var(--color-border)] flex overflow-x-auto py-2 z-20">
         {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
@@ -145,7 +201,7 @@ export default function AppShell() {
             end={to === '/'}
             className={({ isActive }) =>
               `flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] font-medium shrink-0 ${
-                isActive ? 'text-[var(--color-brand-soft)]' : 'text-[var(--color-text-faint)]'
+                isActive ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-faint)]'
               }`
             }
           >
@@ -170,3 +226,6 @@ function GearIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="c
 function LogoutIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M9 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3M16 17l5-5-5-5M21 12H9" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
 function RoomIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="9" cy="7" r="3.5"/><path d="M20.5 20v-2a4 4 0 0 0-3-3.87M14.5 3.3a3.5 3.5 0 0 1 0 6.7" strokeLinecap="round"/></svg>; }
 function ExamIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" strokeLinejoin="round"/><path d="M14 3v5h5" strokeLinejoin="round"/><path d="M8 12.5h6M8 15.5h8M9 9.5h2" strokeLinecap="round"/></svg>; }
+function CapIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M2 9.5 12 5l10 4.5-10 4.5-10-4.5Z" strokeLinejoin="round"/><path d="M6 11.5V16c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-4.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M21 10v5" strokeLinecap="round"/></svg>; }
+function SearchIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2" strokeLinecap="round"/></svg>; }
+function ChevronDownIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}><path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>; }

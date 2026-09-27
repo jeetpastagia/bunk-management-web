@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../api/client';
 import { Card, Button, Input, Spinner, EmptyState } from '../components/ui';
 import { useConfirm } from '../hooks/useConfirm';
@@ -9,8 +10,9 @@ const emptyForm = { name: '', code: '', facultyName: '', credits: '', weeklyLect
 export default function Subjects() {
   const { confirm, dialog } = useConfirm();
   const reveal = useScrollReveal();
+  const [searchParams] = useSearchParams();
   const [subjects, setSubjects] = useState(null);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(() => searchParams.get('search') || '');
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [bulkText, setBulkText] = useState('');
@@ -28,7 +30,8 @@ export default function Subjects() {
   };
 
   useEffect(() => {
-    load();
+    load(searchParams.get('search') || undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSearch = async (e) => {

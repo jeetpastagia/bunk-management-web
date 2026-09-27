@@ -87,7 +87,9 @@ export function AuthLayout({ children }) {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
       <div className="relative z-10 mb-8 flex items-center gap-2.5">
-        <div className="w-11 h-11 rounded-xl bg-[var(--color-brand)] flex items-center justify-center font-display font-bold text-white text-xl">B</div>
+        <div className="w-11 h-11 rounded-xl bg-[var(--color-brand)] flex items-center justify-center text-[var(--color-sidebar)]">
+          <CapIcon className="w-6 h-6" />
+        </div>
         <div>
           <div className="font-display font-semibold text-xl leading-tight">Bunk Manager</div>
           <div className="text-xs text-[var(--color-text-faint)] tracking-wide">TRACK SMART · BUNK SMARTER · STAY ABOVE 75%</div>
@@ -97,3 +99,5 @@ export function AuthLayout({ children }) {
     </div>
   );
 }
+
+function CapIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M2 9.5 12 5l10 4.5-10 4.5-10-4.5Z" strokeLinejoin="round"/><path d="M6 11.5V16c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-4.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M21 10v5" strokeLinecap="round"/></svg>; }

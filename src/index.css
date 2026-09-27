@@ -2,57 +2,57 @@
 @import "tailwindcss";
 
 @theme {
-  /* ---- Base (dark — the default look) ---- */
-  --color-bg: #09090B;
-  --color-surface: #131315;
-  --color-surface-raised: #1C1C1F;
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-soft: rgba(255, 255, 255, 0.05);
+  /* ---- Base (dark — premium green + brass, the default look) ---- */
+  --color-bg: #10241D;
+  --color-sidebar: #0B1814;
+  --color-surface: #183229;
+  --color-surface-raised: #234338;
+  --color-surface-hover: #234338;
+  --color-border: #365047;
+  --color-border-soft: rgba(54, 80, 71, 0.5);
 
-  /* ---- Brand (black/dark-gray — no blue/purple accent) ---- */
-  --color-brand: #52525B;
-  --color-brand-soft: #A1A1AA;
-  --color-amber: #F2B84B;
+  /* ---- Brand (brass — buttons, active nav, key icons/selections only) ---- */
+  --color-brand: #C2A56B;
+  --color-brand-soft: #D3BA88;
+  --color-amber: #C2A56B;
 
-  /* ---- Semantic (attendance zones) — kept as real color, not grayscale:
-     these convey meaning (safe/risky/danger), so desaturating them would
-     make attendance status harder to read at a glance, not more premium. */
-  --color-safe: #3ECF8E;
-  --color-risky: #F2B84B;
-  --color-danger: #FF5C6C;
+  /* ---- Semantic (attendance zones) — sage for safe, brass-amber for risky,
+     a muted brick red for danger: real color on purpose, since these carry
+     meaning (safe/risky/danger), not just brand styling. */
+  --color-safe: #9CAF88;
+  --color-risky: #C2A56B;
+  --color-danger: #CC6B5E;
 
   /* ---- Text ---- */
-  --color-text: #EDEDEF;
-  --color-text-muted: #8F8F97;
-  --color-text-faint: #55555B;
+  --color-text: #F4F0E7;
+  --color-text-muted: #A8B0A8;
+  --color-text-faint: #75847A;
 
-  /* ---- Chrome (glass surfaces, scrollbar, selection, background glow) ---- */
-  --glass-bg: rgba(255, 255, 255, 0.04);
-  --glass-bg-raised: rgba(255, 255, 255, 0.055);
-  --scrollbar-thumb: rgba(255, 255, 255, 0.12);
-  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
+  /* ---- Chrome (card surfaces, scrollbar, selection, background) ---- */
+  --glass-bg: var(--color-surface);
+  --glass-bg-raised: var(--color-surface-raised);
+  --scrollbar-thumb: #365047;
+  --scrollbar-thumb-hover: #46685A;
   --selection-bg: var(--color-brand);
-  --selection-text: white;
-  --bg-glow-1: rgba(255, 255, 255, 0.05);
-  --bg-glow-2: rgba(255, 255, 255, 0.025);
+  --selection-text: #10241D;
+  --bg-glow-1: transparent;
+  --bg-glow-2: transparent;
 
   /* Subtle neutral overlay tints for panels/hovers on top of --color-surface
-     (e.g. bg-[var(--tint-8)]) — white-based on dark, ink-based on light, so
-     "a bit lighter than the surface" never turns into "a bit lighter than
-     white" (invisible) once the surface itself is white. */
-  --tint-5: rgba(255, 255, 255, 0.05);
-  --tint-6: rgba(255, 255, 255, 0.06);
-  --tint-8: rgba(255, 255, 255, 0.08);
-  --tint-10: rgba(255, 255, 255, 0.10);
-  --tint-12: rgba(255, 255, 255, 0.12);
-  --tint-15: rgba(255, 255, 255, 0.15);
-  --tint-30: rgba(255, 255, 255, 0.30);
+     (e.g. bg-[var(--tint-8)]). */
+  --tint-5: rgba(244, 240, 231, 0.04);
+  --tint-6: rgba(244, 240, 231, 0.05);
+  --tint-8: rgba(244, 240, 231, 0.07);
+  --tint-10: rgba(244, 240, 231, 0.09);
+  --tint-12: rgba(244, 240, 231, 0.11);
+  --tint-15: rgba(244, 240, 231, 0.14);
+  --tint-30: rgba(244, 240, 231, 0.28);
 
-  /* Chart gridlines/axes/tooltips (Recharts, BunkGauge — plain inline SVG/style props, not Tailwind classes). */
-  --chart-grid: rgba(255, 255, 255, 0.07);
-  --chart-axis: rgba(255, 255, 255, 0.14);
-  --chart-tick: #8A90A3;
-  --chart-track: rgba(255, 255, 255, 0.12);
+  /* Chart gridlines/axes/tooltips (Recharts — plain inline SVG/style props, not Tailwind classes). */
+  --chart-grid: rgba(54, 80, 71, 0.6);
+  --chart-axis: #365047;
+  --chart-tick: #A8B0A8;
+  --chart-track: #365047;
 
   --font-display: "Space Grotesk", sans-serif;
   --font-body: "Inter", sans-serif;
@@ -62,89 +62,93 @@
 /* "System" while the OS itself prefers light — only when no explicit choice was made. */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
-    --color-bg: #F4F5F9;
+    --color-bg: #F5F2E9;
+    --color-sidebar: #10241D;
     --color-surface: #FFFFFF;
     --color-surface-raised: #FFFFFF;
-    --color-border: rgba(15, 23, 42, 0.10);
-    --color-border-soft: rgba(15, 23, 42, 0.06);
+    --color-surface-hover: #EFEAD9;
+    --color-border: rgba(16, 36, 29, 0.12);
+    --color-border-soft: rgba(16, 36, 29, 0.07);
 
-    --color-brand: #3F3F46;
-    --color-brand-soft: #52525B;
-    --color-amber: #A9660E;
+    --color-brand: #9C7C46;
+    --color-brand-soft: #7E6337;
+    --color-amber: #9C7C46;
 
-    --color-safe: #1E9E6B;
-    --color-risky: #A9660E;
-    --color-danger: #D8324A;
+    --color-safe: #5F7A52;
+    --color-risky: #9C7C46;
+    --color-danger: #A8453A;
 
-    --color-text: #12141C;
-    --color-text-muted: #565C6E;
-    --color-text-faint: #8A90A3;
+    --color-text: #16241D;
+    --color-text-muted: #56634F;
+    --color-text-faint: #8A9284;
 
-    --glass-bg: rgba(15, 23, 42, 0.035);
-    --glass-bg-raised: rgba(15, 23, 42, 0.045);
-    --scrollbar-thumb: rgba(15, 23, 42, 0.16);
-    --scrollbar-thumb-hover: rgba(15, 23, 42, 0.26);
+    --glass-bg: var(--color-surface);
+    --glass-bg-raised: var(--color-surface-raised);
+    --scrollbar-thumb: rgba(16, 36, 29, 0.18);
+    --scrollbar-thumb-hover: rgba(16, 36, 29, 0.28);
     --selection-bg: var(--color-brand);
     --selection-text: white;
-    --bg-glow-1: rgba(15, 23, 42, 0.05);
-    --bg-glow-2: rgba(15, 23, 42, 0.025);
+    --bg-glow-1: transparent;
+    --bg-glow-2: transparent;
 
-    --tint-5: rgba(15, 23, 42, 0.04);
-    --tint-6: rgba(15, 23, 42, 0.05);
-    --tint-8: rgba(15, 23, 42, 0.06);
-    --tint-10: rgba(15, 23, 42, 0.08);
-    --tint-12: rgba(15, 23, 42, 0.10);
-    --tint-15: rgba(15, 23, 42, 0.13);
-    --tint-30: rgba(15, 23, 42, 0.22);
+    --tint-5: rgba(16, 36, 29, 0.04);
+    --tint-6: rgba(16, 36, 29, 0.05);
+    --tint-8: rgba(16, 36, 29, 0.06);
+    --tint-10: rgba(16, 36, 29, 0.08);
+    --tint-12: rgba(16, 36, 29, 0.10);
+    --tint-15: rgba(16, 36, 29, 0.13);
+    --tint-30: rgba(16, 36, 29, 0.22);
 
-    --chart-grid: rgba(15, 23, 42, 0.10);
-    --chart-axis: rgba(15, 23, 42, 0.18);
-    --chart-tick: #565C6E;
-    --chart-track: rgba(15, 23, 42, 0.12);
+    --chart-grid: rgba(16, 36, 29, 0.10);
+    --chart-axis: rgba(16, 36, 29, 0.18);
+    --chart-tick: #56634F;
+    --chart-track: rgba(16, 36, 29, 0.12);
   }
 }
 
 /* Explicit "Light" choice always wins, regardless of OS setting. */
 :root[data-theme="light"] {
-  --color-bg: #F4F5F9;
+  --color-bg: #F5F2E9;
+  --color-sidebar: #10241D;
   --color-surface: #FFFFFF;
   --color-surface-raised: #FFFFFF;
-  --color-border: rgba(15, 23, 42, 0.10);
-  --color-border-soft: rgba(15, 23, 42, 0.06);
+  --color-surface-hover: #EFEAD9;
+  --color-border: rgba(16, 36, 29, 0.12);
+  --color-border-soft: rgba(16, 36, 29, 0.07);
 
-  --color-brand: #3F3F46;
-  --color-brand-soft: #52525B;
-  --color-amber: #A9660E;
+  --color-brand: #9C7C46;
+  --color-brand-soft: #7E6337;
+  --color-amber: #9C7C46;
 
-  --color-safe: #1E9E6B;
-  --color-risky: #A9660E;
-  --color-danger: #D8324A;
+  --color-safe: #5F7A52;
+  --color-risky: #9C7C46;
+  --color-danger: #A8453A;
 
-  --color-text: #12141C;
-  --color-text-muted: #565C6E;
-  --color-text-faint: #8A90A3;
+  --color-text: #16241D;
+  --color-text-muted: #56634F;
+  --color-text-faint: #8A9284;
 
-  --glass-bg: rgba(15, 23, 42, 0.035);
-  --glass-bg-raised: rgba(15, 23, 42, 0.045);
-  --scrollbar-thumb: rgba(15, 23, 42, 0.16);
-  --scrollbar-thumb-hover: rgba(15, 23, 42, 0.26);
+  --glass-bg: var(--color-surface);
+  --glass-bg-raised: var(--color-surface-raised);
+  --scrollbar-thumb: rgba(16, 36, 29, 0.18);
+  --scrollbar-thumb-hover: rgba(16, 36, 29, 0.28);
   --selection-bg: var(--color-brand);
   --selection-text: white;
-  --bg-glow-1: rgba(15, 23, 42, 0.05);
-  --bg-glow-2: rgba(15, 23, 42, 0.025);
+  --bg-glow-1: transparent;
+  --bg-glow-2: transparent;
 
-  --tint-5: rgba(15, 23, 42, 0.04);
-  --tint-6: rgba(15, 23, 42, 0.05);
-  --tint-8: rgba(15, 23, 42, 0.06);
-  --tint-10: rgba(15, 23, 42, 0.08);
-  --tint-12: rgba(15, 23, 42, 0.10);
-  --tint-15: rgba(15, 23, 42, 0.13);
-  --tint-30: rgba(15, 23, 42, 0.22);
+  --tint-5: rgba(16, 36, 29, 0.04);
+  --tint-6: rgba(16, 36, 29, 0.05);
+  --tint-8: rgba(16, 36, 29, 0.06);
+  --tint-10: rgba(16, 36, 29, 0.08);
+  --tint-12: rgba(16, 36, 29, 0.10);
+  --tint-15: rgba(16, 36, 29, 0.13);
+  --tint-30: rgba(16, 36, 29, 0.22);
 
-  --chart-grid: rgba(15, 23, 42, 0.10);
-  --chart-axis: rgba(15, 23, 42, 0.18);
-  --chart-tick: #565C6E;
-  --chart-track: rgba(15, 23, 42, 0.12);
+  --chart-grid: rgba(16, 36, 29, 0.10);
+  --chart-axis: rgba(16, 36, 29, 0.18);
+  --chart-tick: #56634F;
+  --chart-track: rgba(16, 36, 29, 0.12);
 }
 
 html, body, #root {
@@ -171,15 +175,13 @@ body {
 .glass {
   background: var(--glass-bg);
   border: 1px solid var(--color-border);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.25);
 }
 
 .glass-raised {
   background: var(--glass-bg-raised);
   border: 1px solid var(--color-border);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.3);
 }
 
 .mono-num {
@@ -206,7 +208,7 @@ body {
 
 
 :focus-visible {
-  outline: 2px solid var(--color-brand-soft);
+  outline: 2px solid var(--color-brand);
   outline-offset: 2px;
   border-radius: 4px;
 }
