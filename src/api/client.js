@@ -85,8 +85,8 @@ export const api = {
   backfillBunks: (subjectId, bunked) =>
     request(`/attendance/subjects/${subjectId}/backfill-bunks`, { method: 'POST', body: { bunked } }),
   overview: () => request('/attendance/overview'),
-  weeklyTrend: () => request('/attendance/weekly-trend'),
-  subjectAnalytics: () => request('/attendance/subjects'),
+  weeklyTrend: (semesterId) => request(`/attendance/weekly-trend${semesterId ? `?semester=${semesterId}` : ''}`),
+  subjectAnalytics: (semesterId) => request(`/attendance/subjects${semesterId ? `?semester=${semesterId}` : ''}`),
   facultyAnalytics: () => request('/attendance/faculty'),
   monthlyReport: () => request('/attendance/reports/monthly'),
   calendar: (month, year) => request(`/attendance/calendar?month=${month}&year=${year}`),

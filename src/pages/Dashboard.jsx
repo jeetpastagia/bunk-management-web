@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import { Card, Badge, Spinner, Button, ProgressBar } from '../components/ui';
+import { Card, Badge, Spinner, Button, ProgressBar, Select } from '../components/ui';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 
 const STATUS_META = {
@@ -36,6 +36,39 @@ export default function Dashboard() {
   const [error, setError] = useState('');
   const [marking, setMarking] = useState(null);
   const reveal = useScrollReveal();
+
+  // "This Semester" / "All Subjects" filters — '' means "active semester" /
+  // "all subjects" respectively. Picking a past semester switches the whole
+  // dashboard into a read-only summary of that semester (fetched from
+  // semesterOverview); picking a subject re-derives every stat card, the
+  // donut, and the subject-wise list to that one subject's numbers instead
+  // of the aggregate — real recomputation, not just a decorative filter.
+  const [semesters, setSemesters] = useState([]);
+  const [selectedSemesterId, setSelectedSemesterId] = useState('');
+  const [selectedSubjectId, setSelectedSubjectId] = useState('');
+  const [historical, setHistorical] = useState(null);
+  const [historicalLoading, setHistoricalLoading] = useState(false);
+
+  const activeSemester = semesters.find((s) => s.status === 'active') || null;
+  const isActiveView = !selectedSemesterId || selectedSemesterId === activeSemester?._id;
+
+  useEffect(() => {
+    api.listSemesters().then((res) => setSemesters(res.semesters || [])).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (isActiveView) {
+      setHistorical(null);
+      return;
+    }
+    setHistoricalLoading(true);
+    setHistorical(null); // clear the previous semester's data immediately so it can't flash alongside the loading spinner while switching between two past semesters
+    api.semesterOverview(selectedSemesterId)
+      .then((res) => setHistorical(res))
+      .catch((err) => setError(err.message))
+      .finally(() => setHistoricalLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSemesterId, activeSemester?._id]);
 
   const load = async () => {
     try {
@@ -93,11 +126,26 @@ export default function Dashboard() {
 
   const { overall, monthly, requiredAttendancePercentage, safeBunksRemaining, today, danger, monthlyDanger, semesterEndInfo } = data;
   const firstName = user?.studentName?.split(' ')[0] || 'Student';
-  const upcomingToday = today.lectures.filter((l) => l.status === 'pending').length;
+
+  // Everything below re-derives from whichever semester/subject is
+  // selected, rather than always reading the active semester's aggregate —
+  // this is what makes the two dropdowns real filters instead of decoration.
+  const viewSubjects = isActiveView ? subjectStats : (historical?.subjects || []);
+  const viewRequiredPct = isActiveView ? requiredAttendancePercentage : historical?.requiredAttendancePercentage;
+  const viewOverall = isActiveView ? overall : historical?.overall;
+  const viewSafeBunks = isActiveView ? safeBunksRemaining : historical?.safeBunksRemaining;
+  const selectedSubject = selectedSubjectId ? viewSubjects.find((s) => s.subject.id === selectedSubjectId) : null;
+
+  const effective = selectedSubject
+    ? { attended: selectedSubject.attended, conducted: selectedSubject.conducted, bunked: selectedSubject.bunked, percentage: selectedSubject.percentage, safeBunksRemaining: selectedSubject.safeBunksRemaining }
+    : { attended: viewOverall?.attended ?? 0, conducted: viewOverall?.conducted ?? 0, bunked: viewOverall?.bunked ?? 0, percentage: viewOverall?.percentage ?? 0, safeBunksRemaining: viewSafeBunks };
+  const effectiveDanger = viewRequiredPct != null && effective.percentage < viewRequiredPct;
+
+  const upcomingToday = today.lectures.filter((l) => l.status === 'pending' && (!selectedSubjectId || String(l.subject?._id) === selectedSubjectId)).length;
 
   const pieData = [
-    { name: 'Attended', value: overall.attended, color: 'var(--color-safe)' },
-    { name: 'Bunked', value: overall.bunked, color: 'var(--color-danger)' },
+    { name: 'Attended', value: effective.attended, color: 'var(--color-safe)' },
+    { name: 'Bunked', value: effective.bunked, color: 'var(--color-danger)' },
   ].filter((d) => d.value > 0);
 
   return (
@@ -116,20 +164,58 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {danger && (
+      <div className="flex items-center gap-3 flex-wrap">
+        <Select
+          aria-label="Semester"
+          value={selectedSemesterId}
+          onChange={(e) => { setSelectedSemesterId(e.target.value); setSelectedSubjectId(''); }}
+          className="!py-2 text-sm w-auto"
+        >
+          <option value="">{activeSemester ? `${activeSemester.name} (Current)` : 'This Semester'}</option>
+          {semesters.filter((s) => s.status !== 'active').map((s) => (
+            <option key={s._id} value={s._id}>{s.name}</option>
+          ))}
+        </Select>
+        <Select
+          aria-label="Subject"
+          value={selectedSubjectId}
+          onChange={(e) => setSelectedSubjectId(e.target.value)}
+          className="!py-2 text-sm w-auto"
+        >
+          <option value="">All Subjects</option>
+          {viewSubjects.map((s) => (
+            <option key={s.subject.id} value={s.subject.id}>{s.subject.name}</option>
+          ))}
+        </Select>
+        {!isActiveView && (
+          <span className="text-xs text-[var(--color-text-faint)]">
+            Read-only summary — attendance can only be marked in your current semester.
+          </span>
+        )}
+      </div>
+
+      {!isActiveView && historicalLoading && (
+        <div className="flex justify-center py-10"><Spinner size={28} /></div>
+      )}
+
+      {(isActiveView || historical) && (
+      <>
+      {effectiveDanger && (
         <Card className="border-[var(--color-danger)]/40 bg-[var(--color-danger)]/8">
-          <p className="font-semibold text-[var(--color-danger)]">Overall attendance is below {requiredAttendancePercentage}%</p>
+          <p className="font-semibold text-[var(--color-danger)]">
+            {selectedSubject ? selectedSubject.subject.name : 'Overall'} attendance is below {viewRequiredPct}%
+          </p>
           <p className="text-sm text-[var(--color-text-muted)] mt-1">Attend upcoming lectures to avoid warning letters.</p>
         </Card>
       )}
-      {!danger && monthlyDanger && (
+      {!effectiveDanger && isActiveView && !selectedSubjectId && monthlyDanger && (
         <Card className="border-[var(--color-risky)]/40 bg-[var(--color-risky)]/8">
           <p className="font-semibold text-[var(--color-risky)]">Monthly attendance has dropped below {requiredAttendancePercentage}%</p>
           <p className="text-sm text-[var(--color-text-muted)] mt-1">Attend upcoming lectures to avoid warning letters.</p>
         </Card>
       )}
 
-      {semesterEndInfo && !semesterEndInfo.ended && !semesterEndInfo.achievable && (
+      {isActiveView && !selectedSubjectId && semesterEndInfo && !semesterEndInfo.ended && !semesterEndInfo.achievable && (
         <Card className="border-[var(--color-danger)]/40 bg-[var(--color-danger)]/8">
           <p className="font-semibold text-[var(--color-danger)]">
             Reaching {requiredAttendancePercentage}% by your semester end date ({new Date(semesterEndInfo.endDate).toISOString().slice(0, 10)}) is no longer mathematically possible
@@ -139,7 +225,7 @@ export default function Dashboard() {
           </p>
         </Card>
       )}
-      {semesterEndInfo && !semesterEndInfo.ended && semesterEndInfo.achievable && semesterEndInfo.bestPossiblePercentage - requiredAttendancePercentage < 3 && (
+      {isActiveView && !selectedSubjectId && semesterEndInfo && !semesterEndInfo.ended && semesterEndInfo.achievable && semesterEndInfo.bestPossiblePercentage - requiredAttendancePercentage < 3 && (
         <Card className="border-[var(--color-risky)]/40 bg-[var(--color-risky)]/8">
           <p className="font-semibold text-[var(--color-risky)]">
             Cutting it close: {requiredAttendancePercentage}% by {new Date(semesterEndInfo.endDate).toISOString().slice(0, 10)} is only reachable if you attend every remaining lecture
@@ -151,39 +237,45 @@ export default function Dashboard() {
       )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        <StatCard tone="safe" icon={GaugeIcon} label="Overall Attendance" value={`${overall.percentage}%`} sub={`${overall.attended}/${overall.conducted} conducted`} donut={pieData} progress={overall.percentage} requiredValue={requiredAttendancePercentage} />
-        <StatCard tone="brand" icon={TrendIcon} label="Monthly Attendance" value={`${monthly.percentage}%`} sub={`${monthly.attended}/${monthly.conducted} this month`} progress={monthly.percentage} requiredValue={requiredAttendancePercentage} />
-        <StatCard tone="brand" icon={BookIcon} label="Classes Attended" value={`${overall.attended}/${overall.conducted}`} sub="Keep up the good work." />
-        <StatCard tone="danger" icon={BlockIcon} label="Classes Bunked" value={`${overall.bunked}/${overall.conducted}`} sub="Stay within your safe limit." />
-        <StatCard tone="risky" icon={ShieldIcon} label="Safe Bunk Limit" value={Number.isFinite(safeBunksRemaining) ? safeBunksRemaining : '∞'} sub="More classes can be bunked" />
-        <StatCard tone="brand" icon={ClockIcon} label="Upcoming Lectures" value={upcomingToday} sub="Later today" />
+        <StatCard tone="safe" icon={GaugeIcon} label={selectedSubject ? selectedSubject.subject.name : 'Overall Attendance'} value={`${effective.percentage}%`} sub={`${effective.attended}/${effective.conducted} conducted`} donut={pieData} progress={effective.percentage} requiredValue={viewRequiredPct} />
+        {isActiveView && !selectedSubjectId && (
+          <StatCard tone="brand" icon={TrendIcon} label="Monthly Attendance" value={`${monthly.percentage}%`} sub={`${monthly.attended}/${monthly.conducted} this month`} progress={monthly.percentage} requiredValue={requiredAttendancePercentage} />
+        )}
+        <StatCard tone="brand" icon={BookIcon} label="Classes Attended" value={`${effective.attended}/${effective.conducted}`} sub="Keep up the good work." />
+        <StatCard tone="danger" icon={BlockIcon} label="Classes Bunked" value={`${effective.bunked}/${effective.conducted}`} sub="Stay within your safe limit." />
+        <StatCard tone="risky" icon={ShieldIcon} label="Safe Bunk Limit" value={Number.isFinite(effective.safeBunksRemaining) ? effective.safeBunksRemaining : '∞'} sub="More classes can be bunked" />
+        {isActiveView && (
+          <StatCard tone="brand" icon={ClockIcon} label="Upcoming Lectures" value={upcomingToday} sub="Later today" />
+        )}
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6 items-start">
-        <Card tilt className="lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display font-semibold">Weekly Attendance Trend</h2>
-            <span className="text-xs text-[var(--color-text-faint)]">Cumulative, last 7 days</span>
-          </div>
-          <WeeklyTrendChart days={trend} requiredPct={requiredAttendancePercentage} />
-        </Card>
+        {isActiveView && (
+          <Card tilt className="lg:col-span-2">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-display font-semibold">Weekly Attendance Trend</h2>
+              <span className="text-xs text-[var(--color-text-faint)]">{selectedSubjectId ? 'Overall, not subject-specific' : 'Cumulative, last 7 days'}</span>
+            </div>
+            <WeeklyTrendChart days={trend} requiredPct={requiredAttendancePercentage} />
+          </Card>
+        )}
 
-        <Card tilt className="lg:col-span-1">
+        <Card tilt className={isActiveView ? 'lg:col-span-1' : 'lg:col-span-3'}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display font-semibold">Subject-wise Attendance</h2>
             <Link to="/analytics" className="text-xs text-[var(--color-brand)] hover:underline">View All →</Link>
           </div>
-          {subjectStats.length === 0 ? (
+          {viewSubjects.length === 0 ? (
             <p className="text-[var(--color-text-muted)] text-sm">No subjects yet.</p>
           ) : (
             <div className="flex flex-col gap-3.5">
-              {subjectStats.slice(0, 5).map((s) => (
+              {(selectedSubjectId ? viewSubjects.filter((s) => s.subject.id === selectedSubjectId) : viewSubjects.slice(0, 5)).map((s) => (
                 <div key={s.subject.id}>
                   <div className="flex items-center justify-between text-sm mb-1">
                     <span className="font-medium truncate">{s.subject.name}</span>
                     <span className="mono-num text-xs text-[var(--color-text-faint)] shrink-0 ml-2">{s.percentage}%</span>
                   </div>
-                  <ProgressBar value={s.percentage} requiredValue={requiredAttendancePercentage} />
+                  <ProgressBar value={s.percentage} requiredValue={viewRequiredPct} />
                 </div>
               ))}
             </div>
@@ -191,46 +283,51 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6 items-start">
-        <Card tilt className="lg:col-span-1">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display font-semibold">Today's Timetable</h2>
-            <Link to="/attendance" className="text-xs text-[var(--color-brand)] hover:underline">View All →</Link>
-          </div>
-          {today.lectures.length === 0 ? (
-            <p className="text-[var(--color-text-muted)] text-sm">No lectures scheduled today.</p>
-          ) : (
-            <div className="flex flex-col divide-y divide-[var(--color-border-soft)]">
-              {today.lectures.map((l) => {
-                const meta = STATUS_META[l.status] || STATUS_META.pending;
-                return (
-                  <div key={l._id} className="flex items-center justify-between py-3 gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="w-1.5 h-6 rounded-full shrink-0" style={{ background: `var(--color-${meta.tone === 'neutral' ? 'text-faint' : meta.tone})` }} />
-                      <div className="min-w-0">
-                        <p className="font-medium truncate text-sm">{l.subject?.name || 'Subject'}</p>
-                        <p className="text-xs text-[var(--color-text-faint)] truncate">{l.subject?.facultyName}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Badge tone={meta.tone}>{meta.label}</Badge>
-                      {l.status === 'pending' && (
-                        <>
-                          <Button variant="ghost" className="!px-2.5 !py-1.5 text-xs" disabled={marking === l._id} onClick={() => mark(l._id, 'attended')}>
-                            Attended
-                          </Button>
-                          <Button variant="danger" className="!px-2.5 !py-1.5 text-xs" disabled={marking === l._id} onClick={() => mark(l._id, 'bunked')}>
-                            Bunked
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+      <div className={`grid gap-6 items-start ${isActiveView ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}>
+        {isActiveView && (
+          <Card tilt className="lg:col-span-1">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-display font-semibold">Today's Timetable</h2>
+              <Link to="/attendance" className="text-xs text-[var(--color-brand)] hover:underline">View All →</Link>
             </div>
-          )}
-        </Card>
+            {(() => {
+              const shownLectures = selectedSubjectId ? today.lectures.filter((l) => String(l.subject?._id) === selectedSubjectId) : today.lectures;
+              return shownLectures.length === 0 ? (
+                <p className="text-[var(--color-text-muted)] text-sm">No lectures scheduled today{selectedSubjectId ? ' for this subject' : ''}.</p>
+              ) : (
+                <div className="flex flex-col divide-y divide-[var(--color-border-soft)]">
+                  {shownLectures.map((l) => {
+                    const meta = STATUS_META[l.status] || STATUS_META.pending;
+                    return (
+                      <div key={l._id} className="flex items-center justify-between py-3 gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="w-1.5 h-6 rounded-full shrink-0" style={{ background: `var(--color-${meta.tone === 'neutral' ? 'text-faint' : meta.tone})` }} />
+                          <div className="min-w-0">
+                            <p className="font-medium truncate text-sm">{l.subject?.name || 'Subject'}</p>
+                            <p className="text-xs text-[var(--color-text-faint)] truncate">{l.subject?.facultyName}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Badge tone={meta.tone}>{meta.label}</Badge>
+                          {l.status === 'pending' && (
+                            <>
+                              <Button variant="ghost" className="!px-2.5 !py-1.5 text-xs" disabled={marking === l._id} onClick={() => mark(l._id, 'attended')}>
+                                Attended
+                              </Button>
+                              <Button variant="danger" className="!px-2.5 !py-1.5 text-xs" disabled={marking === l._id} onClick={() => mark(l._id, 'bunked')}>
+                                Bunked
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </Card>
+        )}
 
         <Card tilt className="lg:col-span-1">
           <h2 className="font-display font-semibold mb-4">Quick Actions</h2>
@@ -262,7 +359,7 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {insights.length > 0 && (
+      {isActiveView && !selectedSubjectId && insights.length > 0 && (
         <Card tilt>
           <h2 className="font-display font-semibold mb-4">Smart insights</h2>
           <ul className="flex flex-col gap-2.5">
@@ -274,6 +371,8 @@ export default function Dashboard() {
             ))}
           </ul>
         </Card>
+      )}
+      </>
       )}
     </div>
   );
