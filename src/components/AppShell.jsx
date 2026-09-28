@@ -267,9 +267,9 @@ export default function AppShell() {
 
   return (
     <div className="min-h-screen flex">
-      <aside className="hidden md:flex w-64 shrink-0 flex-col bg-[var(--color-sidebar)] border-r border-[var(--color-border)] p-5 sticky top-0 h-screen">
-        <div className="flex items-center gap-2.5 px-1 mb-8">
-          <div className="w-9 h-9 rounded-xl bg-[var(--color-brand)] flex items-center justify-center text-[var(--color-sidebar)]">
+      <aside className="hidden md:flex w-64 shrink-0 flex-col bg-[var(--color-sidebar)] border-r border-[var(--color-border)] p-5 sticky top-0 h-screen overflow-y-auto">
+        <div className="flex items-center gap-2.5 px-1 mb-6">
+          <div className="w-9 h-9 rounded-xl bg-[var(--color-brand)] flex items-center justify-center text-[var(--color-sidebar)] shrink-0">
             <CapIcon className="w-5 h-5" />
           </div>
           <div>
@@ -278,7 +278,7 @@ export default function AppShell() {
           </div>
         </div>
 
-        <nav ref={sidebarNavRef} className="relative flex flex-col gap-1 flex-1">
+        <nav ref={sidebarNavRef} className="relative flex flex-col gap-0.5">
           <ActiveNavIndicator containerRef={sidebarNavRef} />
           {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
             <NavLink
@@ -286,18 +286,20 @@ export default function AppShell() {
               to={to}
               end={to === '/'}
               className={({ isActive }) =>
-                `relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                `relative flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
                   isActive ? 'text-[var(--color-sidebar)] font-semibold' : 'text-[var(--color-text-muted)] hover:bg-[var(--tint-5)] hover:text-[var(--color-text)]'
                 }`
               }
             >
-              <Icon className="w-4.5 h-4.5 shrink-0" />
+              <Icon className="w-4 h-4 shrink-0" />
               {label}
             </NavLink>
           ))}
         </nav>
 
-        <div className="relative overflow-hidden rounded-2xl bg-[var(--color-surface)]/40 border border-[var(--color-border-soft)] p-4 mt-4">
+        <div className="flex-1 min-h-4" />
+
+        <div className="relative overflow-hidden rounded-2xl bg-[var(--color-surface)]/40 border border-[var(--color-border-soft)] p-4 shrink-0">
           <LeafIcon className="absolute -right-3 -bottom-3 w-20 h-20 text-[var(--color-brand)]/15" />
           <p className="relative font-display font-semibold text-sm leading-snug">Smarter Students<br />Bunk Better.</p>
           <p className="relative text-[10px] text-[var(--color-text-faint)] mt-1.5 tracking-wide">BUNK MANAGER — TRACK SMART. BUNK SMARTER.</p>

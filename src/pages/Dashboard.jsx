@@ -62,12 +62,16 @@ export default function Dashboard() {
     load();
   }, []);
 
-  // Patches the clicked lecture's badge instantly (no wait), then only
-  // refreshes the real aggregate numbers via overview() in the background —
-  // previously this called load(), which re-ran overview + insights +
-  // subjects (3 endpoints, including the semester-end achievability scan)
-  // for what should be a single-row status change, and showed nothing
-  // changing until all three came back.
+  // Patches the clicked lecture's badge instantly (no wait), then reloads
+  // every real dashboard number — overview, weekly trend, subject-wise
+  // stats, insights — in the background via load(). This is safe to call
+  // without a loading flash because load() only ever replaces state with
+  // the freshly-fetched values, it never nulls anything out first, so the
+  // page keeps showing the optimistic patch until the real numbers land a
+  // moment later. Every card on this page (trend chart included) is
+  // real backend data recomputed from actual lecture records, not a static
+  // decoration — this is what makes that true after every single mark too,
+  // not just on the next full page load.
   const mark = async (id, status) => {
     setMarking(id);
     try {
@@ -76,8 +80,7 @@ export default function Dashboard() {
         ...prev,
         today: { ...prev.today, lectures: prev.today.lectures.map((l) => (l._id === id ? { ...l, status } : l)) },
       }));
-      const overview = await api.overview();
-      setData(overview);
+      await load();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -88,7 +91,7 @@ export default function Dashboard() {
   if (error) return <Card className="text-[var(--color-danger)]">{error}</Card>;
   if (!data) return <div className="flex justify-center py-20"><Spinner size={32} /></div>;
 
-  const { overall, requiredAttendancePercentage, safeBunksRemaining, today, danger, monthlyDanger, semesterEndInfo } = data;
+  const { overall, monthly, requiredAttendancePercentage, safeBunksRemaining, today, danger, monthlyDanger, semesterEndInfo } = data;
   const firstName = user?.studentName?.split(' ')[0] || 'Student';
   const upcomingToday = today.lectures.filter((l) => l.status === 'pending').length;
 
@@ -147,8 +150,9 @@ export default function Dashboard() {
         </Card>
       )}
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <StatCard tone="safe" icon={GaugeIcon} label="Overall Attendance" value={`${overall.percentage}%`} sub={`${overall.attended}/${overall.conducted} conducted`} donut={pieData} />
+        <StatCard tone="brand" icon={TrendIcon} label="Monthly Attendance" value={`${monthly.percentage}%`} sub={`${monthly.attended}/${monthly.conducted} this month`} />
         <StatCard tone="brand" icon={BookIcon} label="Classes Attended" value={`${overall.attended}/${overall.conducted}`} sub="Keep up the good work." />
         <StatCard tone="danger" icon={BlockIcon} label="Classes Bunked" value={`${overall.bunked}/${overall.conducted}`} sub="Stay within your safe limit." />
         <StatCard tone="risky" icon={ShieldIcon} label="Safe Bunk Limit" value={Number.isFinite(safeBunksRemaining) ? safeBunksRemaining : '∞'} sub="More classes can be bunked" />
@@ -414,6 +418,7 @@ function BookIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="c
 function CalendarIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3 10h18" strokeLinecap="round"/></svg>; }
 function GaugeIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M4 14a8 8 0 1 1 16 0" strokeLinecap="round"/><path d="M12 14l4-4" strokeLinecap="round"/><circle cx="12" cy="14" r="1.3" fill="currentColor" stroke="none"/></svg>; }
 function ClockIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
+function TrendIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M3 17 9 11l4 4 8-8" strokeLinecap="round" strokeLinejoin="round"/><path d="M15 7h6v6" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
 function BlockIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><circle cx="12" cy="12" r="9"/><path d="m6 6 12 12" strokeLinecap="round"/></svg>; }
 function ShieldIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M12 3 4.5 6v6c0 4.5 3 7.5 7.5 9 4.5-1.5 7.5-4.5 7.5-9V6L12 3Z" strokeLinejoin="round"/><path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
 function BoltIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" strokeLinejoin="round"/></svg>; }
