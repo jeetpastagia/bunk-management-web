@@ -4,8 +4,8 @@ import { useAuth } from './AuthContext';
 
 const ThemeContext = createContext(null);
 const STORAGE_KEY = 'bunkmanager_theme';
-const DARK_META_COLOR = '#252C31';
-const LIGHT_META_COLOR = '#F5F3F2';
+const DARK_META_COLOR = '#2B221E';
+const LIGHT_META_COLOR = '#F6F1EB';
 
 function apply(theme) {
   if (theme === 'light' || theme === 'dark') {
