@@ -98,6 +98,7 @@ function buildMonthGrid(year, month) {
   });
 }
 const WEEKDAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+const MONTH_LABELS = Array.from({ length: 12 }, (_, m) => new Date(2000, m, 1).toLocaleDateString(undefined, { month: 'short' }));
 
 // Roughly the dropdown's rendered height (header + weekday row + up to 6
 // week rows + Clear/Today footer) — used to decide whether it should flip
@@ -108,6 +109,12 @@ const DROPDOWN_HEIGHT_ESTIMATE = 360;
 function DatePicker({ value, onChange, min, max, disabled, className = '' }) {
   const [open, setOpen] = useState(false);
   const [dropUp, setDropUp] = useState(false);
+  // 'days' shows the day grid with month/year prev-next stepping; clicking
+  // the month/year label switches to 'months', where prev/next instead
+  // step a year at a time and picking a month jumps straight there —
+  // avoids having to click the single-month arrow dozens of times to
+  // reach a far-off date.
+  const [viewMode, setViewMode] = useState('days');
   const selected = fromISO(value);
   const [viewDate, setViewDate] = useState(() => selected || new Date());
   const containerRef = useRef(null);
@@ -126,6 +133,7 @@ function DatePicker({ value, onChange, min, max, disabled, className = '' }) {
       // (a short viewport either way) keep opening downward as the
       // least-bad default rather than flipping to an even tighter spot.
       setDropUp(spaceBelow < DROPDOWN_HEIGHT_ESTIMATE && spaceAbove > spaceBelow);
+      setViewMode('days');
     }
     setOpen((v) => !v);
   };
@@ -162,11 +170,23 @@ function DatePicker({ value, onChange, min, max, disabled, className = '' }) {
   };
   const goToday = () => {
     const t = new Date();
+    setViewMode('days');
     if (isOutOfRange(t)) {
       setViewDate(t);
       return;
     }
     select(t);
+  };
+
+  const goPrev = () => {
+    setViewDate((d) => (viewMode === 'days' ? new Date(d.getFullYear(), d.getMonth() - 1, 1) : new Date(d.getFullYear() - 1, d.getMonth(), 1)));
+  };
+  const goNext = () => {
+    setViewDate((d) => (viewMode === 'days' ? new Date(d.getFullYear(), d.getMonth() + 1, 1) : new Date(d.getFullYear() + 1, d.getMonth(), 1)));
+  };
+  const pickMonth = (m) => {
+    setViewDate(new Date(viewDate.getFullYear(), m, 1));
+    setViewMode('days');
   };
 
   const days = buildMonthGrid(viewDate.getFullYear(), viewDate.getMonth());
@@ -193,54 +213,89 @@ function DatePicker({ value, onChange, min, max, disabled, className = '' }) {
           <div className="flex items-center justify-between mb-3">
             <button
               type="button"
-              onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))}
+              onClick={goPrev}
+              aria-label={viewMode === 'days' ? 'Previous month' : 'Previous year'}
               className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--tint-8)] text-[var(--color-text-muted)] transition-colors"
             >
               <ChevronGlyph className="w-4 h-4 rotate-180" />
             </button>
-            <span className="font-display font-semibold text-sm">{monthLabel}</span>
             <button
               type="button"
-              onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))}
+              onClick={() => setViewMode((v) => (v === 'days' ? 'months' : 'days'))}
+              className="font-display font-semibold text-sm px-2 py-1 rounded-lg hover:bg-[var(--tint-8)] hover:text-[var(--color-brand)] transition-colors"
+            >
+              {viewMode === 'days' ? monthLabel : viewDate.getFullYear()}
+            </button>
+            <button
+              type="button"
+              onClick={goNext}
+              aria-label={viewMode === 'days' ? 'Next month' : 'Next year'}
               className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--tint-8)] text-[var(--color-text-muted)] transition-colors"
             >
               <ChevronGlyph className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="grid grid-cols-7 gap-1 mb-1">
-            {WEEKDAY_LABELS.map((d) => (
-              <span key={d} className="text-[10px] font-medium text-[var(--color-text-faint)] text-center py-1">{d}</span>
-            ))}
-          </div>
+          {viewMode === 'months' ? (
+            <div className="grid grid-cols-4 gap-1.5 py-1">
+              {MONTH_LABELS.map((label, m) => {
+                const isCurrent = selected && selected.getFullYear() === viewDate.getFullYear() && selected.getMonth() === m;
+                const isThisMonth = today.getFullYear() === viewDate.getFullYear() && today.getMonth() === m;
+                return (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => pickMonth(m)}
+                    className={`h-10 rounded-lg text-xs font-medium transition-colors ${
+                      isCurrent
+                        ? 'bg-[var(--color-brand)] text-white'
+                        : isThisMonth
+                        ? 'border border-[var(--color-brand)] text-[var(--color-brand)]'
+                        : 'text-[var(--color-text)] hover:bg-[var(--tint-8)]'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-7 gap-1 mb-1">
+                {WEEKDAY_LABELS.map((d) => (
+                  <span key={d} className="text-[10px] font-medium text-[var(--color-text-faint)] text-center py-1">{d}</span>
+                ))}
+              </div>
 
-          <div className="grid grid-cols-7 gap-1">
-            {days.map((d) => {
-              const outOfMonth = d.getMonth() !== viewDate.getMonth();
-              const outOfRange = isOutOfRange(d);
-              const isSelected = sameDay(d, selected);
-              const isToday = sameDay(d, today);
-              return (
-                <button
-                  key={toISO(d)}
-                  type="button"
-                  disabled={outOfRange}
-                  onClick={() => select(d)}
-                  className={`h-8 rounded-lg text-xs font-medium mono-num transition-colors ${
-                    isSelected
-                      ? 'bg-[var(--color-brand)] text-white'
-                      : isToday
-                      ? 'border border-[var(--color-brand)] text-[var(--color-brand)]'
-                      : outOfMonth
-                      ? 'text-[var(--color-text-faint)] hover:bg-[var(--tint-8)]'
-                      : 'text-[var(--color-text)] hover:bg-[var(--tint-8)]'
-                  } ${outOfRange ? 'opacity-30 pointer-events-none' : ''}`}
-                >
-                  {d.getDate()}
-                </button>
-              );
-            })}
-          </div>
+              <div className="grid grid-cols-7 gap-1">
+                {days.map((d) => {
+                  const outOfMonth = d.getMonth() !== viewDate.getMonth();
+                  const outOfRange = isOutOfRange(d);
+                  const isSelected = sameDay(d, selected);
+                  const isToday = sameDay(d, today);
+                  return (
+                    <button
+                      key={toISO(d)}
+                      type="button"
+                      disabled={outOfRange}
+                      onClick={() => select(d)}
+                      className={`h-8 rounded-lg text-xs font-medium mono-num transition-colors ${
+                        isSelected
+                          ? 'bg-[var(--color-brand)] text-white'
+                          : isToday
+                          ? 'border border-[var(--color-brand)] text-[var(--color-brand)]'
+                          : outOfMonth
+                          ? 'text-[var(--color-text-faint)] hover:bg-[var(--tint-8)]'
+                          : 'text-[var(--color-text)] hover:bg-[var(--tint-8)]'
+                      } ${outOfRange ? 'opacity-30 pointer-events-none' : ''}`}
+                    >
+                      {d.getDate()}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-[var(--color-border-soft)]">
             <button type="button" onClick={clear} className="text-xs font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors">Clear</button>
