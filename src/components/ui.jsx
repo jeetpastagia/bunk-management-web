@@ -99,16 +99,36 @@ function buildMonthGrid(year, month) {
 }
 const WEEKDAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
+// Roughly the dropdown's rendered height (header + weekday row + up to 6
+// week rows + Clear/Today footer) — used to decide whether it should flip
+// to open upward instead of clipping off the bottom of the viewport.
+const DROPDOWN_HEIGHT_ESTIMATE = 360;
+
 /** Fully custom, themeable calendar dropdown replacing native <input type="date">. */
 function DatePicker({ value, onChange, min, max, disabled, className = '' }) {
   const [open, setOpen] = useState(false);
+  const [dropUp, setDropUp] = useState(false);
   const selected = fromISO(value);
   const [viewDate, setViewDate] = useState(() => selected || new Date());
   const containerRef = useRef(null);
+  const triggerRef = useRef(null);
 
   useEffect(() => {
     if (selected) setViewDate(selected);
   }, [value]);
+
+  const toggleOpen = () => {
+    if (!open && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      // Only flip up if there's actually more room that way — otherwise
+      // (a short viewport either way) keep opening downward as the
+      // least-bad default rather than flipping to an even tighter spot.
+      setDropUp(spaceBelow < DROPDOWN_HEIGHT_ESTIMATE && spaceAbove > spaceBelow);
+    }
+    setOpen((v) => !v);
+  };
 
   useEffect(() => {
     if (!open) return undefined;
@@ -157,8 +177,9 @@ function DatePicker({ value, onChange, min, max, disabled, className = '' }) {
     <div className={`relative ${className}`} ref={containerRef}>
       <button
         type="button"
+        ref={triggerRef}
         disabled={disabled}
-        onClick={() => setOpen((v) => !v)}
+        onClick={toggleOpen}
         className="w-full flex items-center justify-between gap-2 bg-[var(--tint-5)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-left outline-none focus:border-[var(--color-brand)] transition-colors disabled:opacity-40 disabled:pointer-events-none"
       >
         <span className={selected ? '' : 'text-[var(--color-text-faint)]'}>
@@ -168,7 +189,7 @@ function DatePicker({ value, onChange, min, max, disabled, className = '' }) {
       </button>
 
       {open && (
-        <div className="absolute z-30 mt-2 w-72 glass-raised rounded-2xl p-3.5 shadow-xl">
+        <div className={`absolute z-30 w-72 glass-raised rounded-2xl p-3.5 shadow-xl ${dropUp ? 'bottom-full mb-2' : 'top-full mt-2'}`}>
           <div className="flex items-center justify-between mb-3">
             <button
               type="button"

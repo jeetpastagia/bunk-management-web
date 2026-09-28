@@ -37,6 +37,17 @@ export function useScrollReveal({ selector = ':scope > *', y = 24, stagger = 0.0
           duration: 0.6,
           ease: 'power2.out',
           stagger,
+          // Without this, GSAP leaves an inline `transform: translate3d(0,0,0)`
+          // on each revealed card even once it settles at y:0 — a transform
+          // of any value (including identity) creates a new CSS stacking
+          // context, which silently traps that card's own z-30 children
+          // (e.g. the DatePicker dropdown in Attendance's date-row card)
+          // inside it. The dropdown could then never paint above a later
+          // sibling card, since the sibling's own stacking context painted
+          // after the trapped one regardless of the dropdown's z-index —
+          // this was the actual cause of the calendar rendering behind the
+          // lecture list below it.
+          clearProps: 'transform',
           scrollTrigger: {
             trigger: el,
             start: 'top 88%',
