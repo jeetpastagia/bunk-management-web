@@ -16,12 +16,19 @@ function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
+/** First day of the month containing the given ISO date — used as `min` so the whole start month is browsable/selectable, not just from the exact start day onward, while still blocking navigation to earlier months. */
+function startOfMonthISO(iso) {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+}
+
 export default function Attendance() {
   const reveal = useScrollReveal();
   const [date, setDate] = useState(todayISO());
   const [lectures, setLectures] = useState(null);
   const [marking, setMarking] = useState(null);
   const [error, setError] = useState('');
+  const [activeSemester, setActiveSemester] = useState(null);
 
   const load = async (d) => {
     setLectures(null);
@@ -37,6 +44,12 @@ export default function Attendance() {
   useEffect(() => {
     load(date);
   }, [date]);
+
+  useEffect(() => {
+    api.listSemesters()
+      .then((res) => setActiveSemester(res.semesters?.find((s) => s.status === 'active') || null))
+      .catch(() => {});
+  }, []);
 
   // Patches just the one changed lecture in place instead of calling
   // load(date) — which set lectures to null first and flashed the whole
@@ -73,7 +86,16 @@ export default function Attendance() {
       </div>
 
       <Card className="!p-4 flex items-center gap-4 flex-wrap">
-        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} max={todayISO()} className="w-auto" />
+        <Input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          min={activeSemester ? startOfMonthISO(activeSemester.startDate) : undefined}
+          max={todayISO()}
+          markStart={activeSemester?.startDate?.slice(0, 10)}
+          markEnd={activeSemester?.endDate?.slice(0, 10)}
+          className="w-auto"
+        />
         <div className="flex gap-2 ml-auto">
           <Button variant="ghost" onClick={() => markWholeDay('attended')}>Mark whole day attended</Button>
           <Button variant="danger" onClick={() => markWholeDay('bunked')}>Mark whole day bunked</Button>

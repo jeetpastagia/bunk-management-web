@@ -50,11 +50,11 @@ export function Input({ label, error, className = '', ...props }) {
   // event, e.target.value still an ISO yyyy-mm-dd string) so every existing
   // call site works unchanged.
   if (props.type === 'date') {
-    const { type: _type, value, onChange, min, max, disabled, required, ...rest } = props;
+    const { type: _type, value, onChange, min, max, disabled, required, markStart, markEnd, ...rest } = props;
     return (
       <label className="flex flex-col gap-1.5 text-base">
         {label && <span className="text-[var(--color-text-muted)] font-medium">{label}</span>}
-        <DatePicker value={value} onChange={onChange} min={min} max={max} disabled={disabled} required={required} className={className} {...rest} />
+        <DatePicker value={value} onChange={onChange} min={min} max={max} disabled={disabled} required={required} markStart={markStart} markEnd={markEnd} className={className} {...rest} />
         {error && <span className="text-[var(--color-danger)] text-xs">{error}</span>}
       </label>
     );
@@ -105,8 +105,13 @@ const MONTH_LABELS = Array.from({ length: 12 }, (_, m) => new Date(2000, m, 1).t
 // to open upward instead of clipping off the bottom of the viewport.
 const DROPDOWN_HEIGHT_ESTIMATE = 360;
 
-/** Fully custom, themeable calendar dropdown replacing native <input type="date">. */
-function DatePicker({ value, onChange, min, max, disabled, className = '' }) {
+/**
+ * Fully custom, themeable calendar dropdown replacing native <input type="date">.
+ * `markStart`/`markEnd` (ISO strings) draw a small ring + dot on those exact
+ * dates without disabling anything around them — e.g. a semester's start/end
+ * date shown for reference while `min`/`max` handle actual selectability.
+ */
+function DatePicker({ value, onChange, min, max, disabled, markStart, markEnd, className = '' }) {
   const [open, setOpen] = useState(false);
   const [dropUp, setDropUp] = useState(false);
   // 'days' shows the day grid with month/year prev-next stepping; clicking
@@ -156,7 +161,19 @@ function DatePicker({ value, onChange, min, max, disabled, className = '' }) {
 
   const minDate = min ? fromISO(min) : null;
   const maxDate = max ? fromISO(max) : null;
+  const startMark = markStart ? fromISO(markStart) : null;
+  const endMark = markEnd ? fromISO(markEnd) : null;
   const isOutOfRange = (d) => (minDate && d < minDate) || (maxDate && d > maxDate);
+
+  // Locks month/year stepping at the min/max boundary instead of only
+  // graying out individual days — otherwise the prev/next arrow happily
+  // walks into a month where every single day is disabled.
+  const canGoPrev = viewMode === 'days'
+    ? !minDate || new Date(viewDate.getFullYear(), viewDate.getMonth(), 1) > new Date(minDate.getFullYear(), minDate.getMonth(), 1)
+    : !minDate || viewDate.getFullYear() > minDate.getFullYear();
+  const canGoNext = viewMode === 'days'
+    ? !maxDate || new Date(viewDate.getFullYear(), viewDate.getMonth(), 1) < new Date(maxDate.getFullYear(), maxDate.getMonth(), 1)
+    : !maxDate || viewDate.getFullYear() < maxDate.getFullYear();
 
   const emit = (v) => onChange?.({ target: { value: v } });
   const select = (d) => {
@@ -179,9 +196,11 @@ function DatePicker({ value, onChange, min, max, disabled, className = '' }) {
   };
 
   const goPrev = () => {
+    if (!canGoPrev) return;
     setViewDate((d) => (viewMode === 'days' ? new Date(d.getFullYear(), d.getMonth() - 1, 1) : new Date(d.getFullYear() - 1, d.getMonth(), 1)));
   };
   const goNext = () => {
+    if (!canGoNext) return;
     setViewDate((d) => (viewMode === 'days' ? new Date(d.getFullYear(), d.getMonth() + 1, 1) : new Date(d.getFullYear() + 1, d.getMonth(), 1)));
   };
   const pickMonth = (m) => {
@@ -214,8 +233,9 @@ function DatePicker({ value, onChange, min, max, disabled, className = '' }) {
             <button
               type="button"
               onClick={goPrev}
+              disabled={!canGoPrev}
               aria-label={viewMode === 'days' ? 'Previous month' : 'Previous year'}
-              className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--tint-8)] text-[var(--color-text-muted)] transition-colors"
+              className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--tint-8)] text-[var(--color-text-muted)] transition-colors disabled:opacity-30 disabled:pointer-events-none"
             >
               <ChevronGlyph className="w-4 h-4 rotate-180" />
             </button>
@@ -229,8 +249,9 @@ function DatePicker({ value, onChange, min, max, disabled, className = '' }) {
             <button
               type="button"
               onClick={goNext}
+              disabled={!canGoNext}
               aria-label={viewMode === 'days' ? 'Next month' : 'Next year'}
-              className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--tint-8)] text-[var(--color-text-muted)] transition-colors"
+              className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--tint-8)] text-[var(--color-text-muted)] transition-colors disabled:opacity-30 disabled:pointer-events-none"
             >
               <ChevronGlyph className="w-4 h-4" />
             </button>
@@ -273,13 +294,16 @@ function DatePicker({ value, onChange, min, max, disabled, className = '' }) {
                   const outOfRange = isOutOfRange(d);
                   const isSelected = sameDay(d, selected);
                   const isToday = sameDay(d, today);
+                  const isStart = sameDay(d, startMark);
+                  const isEnd = sameDay(d, endMark);
                   return (
                     <button
                       key={toISO(d)}
                       type="button"
                       disabled={outOfRange}
                       onClick={() => select(d)}
-                      className={`h-8 rounded-lg text-xs font-medium mono-num transition-colors ${
+                      title={isStart ? 'Semester start' : isEnd ? 'Semester end' : undefined}
+                      className={`relative h-8 rounded-lg text-xs font-medium mono-num transition-colors ${
                         isSelected
                           ? 'bg-[var(--color-brand)] text-white'
                           : isToday
@@ -287,9 +311,12 @@ function DatePicker({ value, onChange, min, max, disabled, className = '' }) {
                           : outOfMonth
                           ? 'text-[var(--color-text-faint)] hover:bg-[var(--tint-8)]'
                           : 'text-[var(--color-text)] hover:bg-[var(--tint-8)]'
-                      } ${outOfRange ? 'opacity-30 pointer-events-none' : ''}`}
+                      } ${(isStart || isEnd) && !isSelected ? 'ring-1 ring-inset ring-[var(--color-brand)]' : ''} ${outOfRange ? 'opacity-30 pointer-events-none' : ''}`}
                     >
                       {d.getDate()}
+                      {(isStart || isEnd) && (
+                        <span className={`absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full ${isSelected ? 'bg-white' : 'bg-[var(--color-brand)]'}`} />
+                      )}
                     </button>
                   );
                 })}
