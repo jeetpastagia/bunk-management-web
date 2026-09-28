@@ -66,13 +66,13 @@ export default function Attendance() {
   };
 
   return (
-    <div ref={reveal} className="flex flex-col gap-6">
+    <div ref={reveal} className="flex flex-col gap-4">
       <div>
-        <h1 className="font-display text-2xl font-semibold">Mark attendance</h1>
-        <p className="text-[var(--color-text-muted)] text-sm mt-1">Attendance is tracked lecture-wise, never day-wise.</p>
+        <h1 className="font-display text-xl font-semibold">Mark attendance</h1>
+        <p className="text-[var(--color-text-muted)] text-sm mt-0.5">Attendance is tracked lecture-wise, never day-wise.</p>
       </div>
 
-      <Card className="flex items-center gap-4 flex-wrap">
+      <Card className="!p-4 flex items-center gap-4 flex-wrap">
         <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} max={todayISO()} className="w-auto" />
         <div className="flex gap-2 ml-auto">
           <Button variant="ghost" onClick={() => markWholeDay('attended')}>Mark whole day attended</Button>
@@ -80,30 +80,34 @@ export default function Attendance() {
         </div>
       </Card>
 
-      <Card>
+      <Card className="!p-4">
         {error && <p className="text-[var(--color-danger)] text-sm">{error}</p>}
         {!lectures && !error ? (
           <div className="flex justify-center py-10"><Spinner /></div>
         ) : lectures && lectures.length === 0 ? (
           <p className="text-[var(--color-text-muted)] text-sm text-center py-6">No lectures scheduled on this date.</p>
         ) : (
-          <div className="flex flex-col divide-y divide-[var(--color-border-soft)]">
+          // Capped + internally scrollable so a full day's timetable never
+          // pushes the date picker/whole-day buttons off-screen or forces
+          // the whole page to scroll — only this list does, once it's
+          // taller than roughly half the viewport.
+          <div className="flex flex-col divide-y divide-[var(--color-border-soft)] max-h-[55vh] overflow-y-auto pr-1">
             {lectures?.map((l) => {
               const meta = STATUS_META[l.status];
               return (
-                <div key={l._id} className="flex items-center justify-between py-3.5 gap-4 flex-wrap">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="mono-num text-xs text-[var(--color-text-faint)] w-6">#{l.lectureNumber}</span>
+                <div key={l._id} className="flex items-center justify-between py-2 gap-4 flex-wrap">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="mono-num text-xs text-[var(--color-text-faint)] w-5">#{l.lectureNumber}</span>
                     <div className="min-w-0">
-                      <p className="font-medium truncate">{l.subject?.name}</p>
-                      <p className="text-xs text-[var(--color-text-faint)] truncate">{l.subject?.facultyName}</p>
+                      <p className="font-medium text-sm truncate leading-tight">{l.subject?.name}</p>
+                      <p className="text-[11px] text-[var(--color-text-faint)] truncate leading-tight">{l.subject?.facultyName}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <Badge tone={meta.tone}>{meta.icon} {meta.label}</Badge>
-                    <Button variant="ghost" className="!px-2.5 !py-1.5 text-xs" disabled={marking === l._id} onClick={() => mark(l._id, 'attended')}>Attended</Button>
-                    <Button variant="danger" className="!px-2.5 !py-1.5 text-xs" disabled={marking === l._id} onClick={() => mark(l._id, 'bunked')}>Bunked</Button>
-                    <Button variant="ghost" className="!px-2.5 !py-1.5 text-xs" disabled={marking === l._id} onClick={() => mark(l._id, 'cancelled')}>Cancelled</Button>
+                    <Button variant="ghost" className="!px-2 !py-1 text-xs" disabled={marking === l._id} onClick={() => mark(l._id, 'attended')}>Attended</Button>
+                    <Button variant="danger" className="!px-2 !py-1 text-xs" disabled={marking === l._id} onClick={() => mark(l._id, 'bunked')}>Bunked</Button>
+                    <Button variant="ghost" className="!px-2 !py-1 text-xs" disabled={marking === l._id} onClick={() => mark(l._id, 'cancelled')}>Cancelled</Button>
                   </div>
                 </div>
               );
