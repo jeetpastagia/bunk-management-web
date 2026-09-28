@@ -104,6 +104,13 @@ const MONTH_LABELS = Array.from({ length: 12 }, (_, m) => new Date(2000, m, 1).t
 // week rows + Clear/Today footer) — used to decide whether it should flip
 // to open upward instead of clipping off the bottom of the viewport.
 const DROPDOWN_HEIGHT_ESTIMATE = 360;
+// The dropdown's own width (w-72 = 18rem = 288px) — used the same way to
+// decide whether it should hang off the trigger's right edge instead of
+// its left, which matters most on phones: several date fields (e.g.
+// Attendance's date-row) size the trigger to its content with `w-auto`
+// rather than full-width, so a left-anchored 288px panel can run straight
+// off the right edge of a ~360-390px-wide screen.
+const DROPDOWN_WIDTH_ESTIMATE = 288;
 
 /**
  * Fully custom, themeable calendar dropdown replacing native <input type="date">.
@@ -114,6 +121,7 @@ const DROPDOWN_HEIGHT_ESTIMATE = 360;
 function DatePicker({ value, onChange, min, max, disabled, markStart, markEnd, className = '' }) {
   const [open, setOpen] = useState(false);
   const [dropUp, setDropUp] = useState(false);
+  const [alignEnd, setAlignEnd] = useState(false);
   // 'days' shows the day grid with month/year prev-next stepping; clicking
   // the month/year label switches to 'months', where prev/next instead
   // step a year at a time and picking a month jumps straight there —
@@ -138,6 +146,9 @@ function DatePicker({ value, onChange, min, max, disabled, markStart, markEnd, c
       // (a short viewport either way) keep opening downward as the
       // least-bad default rather than flipping to an even tighter spot.
       setDropUp(spaceBelow < DROPDOWN_HEIGHT_ESTIMATE && spaceAbove > spaceBelow);
+      // Same idea horizontally: hang off the trigger's right edge instead
+      // of overflowing past the right side of a narrow (phone-width) screen.
+      setAlignEnd(rect.left + DROPDOWN_WIDTH_ESTIMATE > window.innerWidth);
       setViewMode('days');
     }
     setOpen((v) => !v);
@@ -228,7 +239,9 @@ function DatePicker({ value, onChange, min, max, disabled, markStart, markEnd, c
       </button>
 
       {open && (
-        <div className={`absolute z-30 w-72 glass-raised rounded-2xl p-3.5 shadow-xl ${dropUp ? 'bottom-full mb-2' : 'top-full mt-2'}`}>
+        <div
+          className={`absolute z-30 w-72 max-w-[calc(100vw-2rem)] glass-raised rounded-2xl p-3.5 shadow-xl ${dropUp ? 'bottom-full mb-2' : 'top-full mt-2'} ${alignEnd ? 'right-0' : 'left-0'}`}
+        >
           <div className="flex items-center justify-between mb-3">
             <button
               type="button"
