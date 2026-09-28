@@ -70,12 +70,18 @@
     --color-border: rgba(16, 36, 29, 0.12);
     --color-border-soft: rgba(16, 36, 29, 0.07);
 
-    --color-brand: #9C7C46;
-    --color-brand-soft: #7E6337;
-    --color-amber: #9C7C46;
+    /* Darkened from the original #9C7C46/#5F7A52 pass — those measured
+       3.9:1 and 4.8:1 against white/cream (WCAG AA needs 4.5:1 for text),
+       which is exactly why brass links/badges and "safe" green text/badges
+       read as washed-out or invisible once switched from dark to light
+       mode. These pass AA with real margin (~6-8:1) at every surface used:
+       page bg, white cards, and 15%-tint badge backgrounds. */
+    --color-brand: #7A5F30;
+    --color-brand-soft: #634D26;
+    --color-amber: #7A5F30;
 
-    --color-safe: #5F7A52;
-    --color-risky: #9C7C46;
+    --color-safe: #3D5A31;
+    --color-risky: #7A5F30;
     --color-danger: #A8453A;
 
     --color-text: #16241D;
@@ -116,12 +122,12 @@
   --color-border: rgba(16, 36, 29, 0.12);
   --color-border-soft: rgba(16, 36, 29, 0.07);
 
-  --color-brand: #9C7C46;
-  --color-brand-soft: #7E6337;
-  --color-amber: #9C7C46;
+  --color-brand: #7A5F30;
+  --color-brand-soft: #634D26;
+  --color-amber: #7A5F30;
 
-  --color-safe: #5F7A52;
-  --color-risky: #9C7C46;
+  --color-safe: #3D5A31;
+  --color-risky: #7A5F30;
   --color-danger: #A8453A;
 
   --color-text: #16241D;

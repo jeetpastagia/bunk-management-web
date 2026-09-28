@@ -17,25 +17,42 @@ const STATUS_META = {
 
 const TODAY_LABEL = new Date().toLocaleDateString(undefined, { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
 
+function timeOfDayGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good Morning';
+  if (hour < 17) return 'Good Afternoon';
+  if (hour < 21) return 'Good Evening';
+  return 'Good Night';
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const [data, setData] = useState(null);
   const [subjectCount, setSubjectCount] = useState(null);
   const [insights, setInsights] = useState([]);
+  const [trend, setTrend] = useState([]);
+  const [subjectStats, setSubjectStats] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [error, setError] = useState('');
   const [marking, setMarking] = useState(null);
   const reveal = useScrollReveal();
 
   const load = async () => {
     try {
-      const [overview, insightsRes, subjectsRes] = await Promise.all([
+      const [overview, insightsRes, subjectsRes, trendRes, subjectAnalyticsRes, notificationsRes] = await Promise.all([
         api.overview(),
         api.insights().catch(() => ({ insights: [] })),
         api.listSubjects().catch(() => ({ subjects: [] })),
+        api.weeklyTrend().catch(() => ({ days: [] })),
+        api.subjectAnalytics().catch(() => ({ subjects: [] })),
+        api.listNotifications({ limit: 4 }).catch(() => ({ notifications: [] })),
       ]);
       setData(overview);
       setInsights(insightsRes.insights || []);
       setSubjectCount(subjectsRes.subjects?.length ?? 0);
+      setTrend(trendRes.days || []);
+      setSubjectStats(subjectAnalyticsRes.subjects || []);
+      setNotifications(notificationsRes.notifications || []);
     } catch (err) {
       setError(err.message);
     }
@@ -83,7 +100,7 @@ export default function Dashboard() {
     <div ref={reveal} className="flex flex-col gap-6">
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
-          <h1 className="font-display text-3xl font-semibold">Welcome back, {firstName} 👋</h1>
+          <h1 className="font-display text-3xl font-semibold">{timeOfDayGreeting()}, {firstName}!</h1>
           <p className="text-[var(--color-text-muted)] text-base mt-1.5">Stay on track, manage your classes and never worry about attendance again.</p>
         </div>
         <div className="flex items-center gap-4">
@@ -214,6 +231,64 @@ export default function Dashboard() {
         </Card>
       </div>
 
+      <div className="grid lg:grid-cols-3 gap-6 items-start">
+        <Card className="lg:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display font-semibold">Weekly Attendance Trend</h2>
+            <span className="text-xs text-[var(--color-text-faint)]">Cumulative, last 7 days</span>
+          </div>
+          <WeeklyTrendChart days={trend} requiredPct={requiredAttendancePercentage} />
+        </Card>
+
+        <Card className="lg:col-span-1 flex flex-col items-center">
+          <h2 className="font-display font-semibold self-start mb-2">Bunk Risk</h2>
+          <BunkRiskGauge percentage={overall.percentage} requiredPct={requiredAttendancePercentage} />
+        </Card>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6 items-start">
+        <Card>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display font-semibold">Subject-wise Attendance</h2>
+            <Link to="/analytics" className="text-xs text-[var(--color-brand)] hover:underline">View All →</Link>
+          </div>
+          {subjectStats.length === 0 ? (
+            <p className="text-[var(--color-text-muted)] text-sm">No subjects yet.</p>
+          ) : (
+            <div className="flex flex-col gap-3.5">
+              {subjectStats.slice(0, 5).map((s) => (
+                <div key={s.subject.id}>
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <span className="font-medium truncate">{s.subject.name}</span>
+                    <span className="mono-num text-xs text-[var(--color-text-faint)] shrink-0 ml-2">{s.percentage}%</span>
+                  </div>
+                  <ProgressBar value={s.percentage} requiredValue={requiredAttendancePercentage} />
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        <Card>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display font-semibold">Recent Notifications</h2>
+          </div>
+          {notifications.length === 0 ? (
+            <p className="text-[var(--color-text-muted)] text-sm">No notifications yet.</p>
+          ) : (
+            <div className="flex flex-col divide-y divide-[var(--color-border-soft)]">
+              {notifications.map((n) => (
+                <div key={n._id} className="py-2.5 first:pt-0 last:pb-0">
+                  <p className="text-sm font-medium">{n.title}</p>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{n.body}</p>
+                  <p className="text-[10px] text-[var(--color-text-faint)] mt-1">{timeAgo(n.sentAt)}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
+
       {insights.length > 0 && (
         <Card>
           <h2 className="font-display font-semibold mb-4">Smart insights</h2>
@@ -293,6 +368,101 @@ function AttendanceDonut({ segments }) {
         );
       })}
     </svg>
+  );
+}
+
+function timeAgo(dateString) {
+  const diffMs = Date.now() - new Date(dateString).getTime();
+  const minutes = Math.floor(diffMs / 60_000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
+/**
+ * Hand-rolled SVG line chart (no recharts — see AttendanceDonut's note above
+ * on why Dashboard avoids that dependency) plotting weekly-trend's cumulative
+ * percentage-as-of-each-day, with a dashed reference line at the required %.
+ */
+function WeeklyTrendChart({ days, requiredPct }) {
+  if (!days || days.length < 2) {
+    return <p className="text-[var(--color-text-muted)] text-sm py-8 text-center">Not enough data yet — check back after a few more days.</p>;
+  }
+
+  const width = 560;
+  const height = 180;
+  const padX = 28;
+  const padTop = 14;
+  const padBottom = 24;
+  const plotW = width - padX * 2;
+  const plotH = height - padTop - padBottom;
+
+  const x = (i) => padX + (i / (days.length - 1)) * plotW;
+  const y = (pct) => padTop + (1 - Math.min(100, Math.max(0, pct)) / 100) * plotH;
+
+  const linePath = days.map((d, i) => `${i === 0 ? 'M' : 'L'} ${x(i)} ${y(d.percentage)}`).join(' ');
+  const areaPath = `${linePath} L ${x(days.length - 1)} ${padTop + plotH} L ${x(0)} ${padTop + plotH} Z`;
+  const requiredY = y(requiredPct);
+
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto" preserveAspectRatio="none">
+      <line x1={padX} x2={width - padX} y1={requiredY} y2={requiredY} stroke="var(--color-risky)" strokeWidth="1.5" strokeDasharray="5 4" />
+      <text x={width - padX} y={requiredY - 6} textAnchor="end" fontSize="10" fill="var(--color-risky)">{requiredPct}% required</text>
+      <path d={areaPath} fill="var(--color-brand)" opacity="0.08" stroke="none" />
+      <path d={linePath} fill="none" stroke="var(--color-brand)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      {days.map((d, i) => (
+        <circle key={d.date} cx={x(i)} cy={y(d.percentage)} r="3.5" fill="var(--color-surface)" stroke="var(--color-brand)" strokeWidth="2" />
+      ))}
+      {days.map((d, i) => (
+        <text key={d.date} x={x(i)} y={height - 4} textAnchor="middle" fontSize="10" fill="var(--chart-tick)">
+          {new Date(d.date).toLocaleDateString(undefined, { weekday: 'short' })}
+        </text>
+      ))}
+    </svg>
+  );
+}
+
+/**
+ * Semicircular risk gauge: the arc is split into danger/risky/safe zones at
+ * the same requiredPct/+5 cushion used everywhere else (ProgressBar,
+ * Analytics, Tools), with a needle pointing at the current overall %.
+ * "Risk" is framed as the inverse of attendance health — low % = high risk.
+ */
+function BunkRiskGauge({ percentage, requiredPct }) {
+  const cx = 100;
+  const cy = 100;
+  const r = 72;
+  const circumference = Math.PI * r;
+  const dangerEnd = Math.min(100, requiredPct);
+  const riskyEnd = Math.min(100, requiredPct + 5);
+
+  const arcPath = `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`;
+  const dangerLen = (dangerEnd / 100) * circumference;
+  const riskyLen = ((riskyEnd - dangerEnd) / 100) * circumference;
+  const safeLen = circumference - dangerLen - riskyLen;
+
+  const clamped = Math.min(100, Math.max(0, percentage));
+  const angle = Math.PI * (1 - clamped / 100);
+  const needleX = cx + (r - 6) * Math.cos(angle);
+  const needleY = cy - (r - 6) * Math.sin(angle);
+
+  const level = percentage < requiredPct ? 'High' : percentage < requiredPct + 5 ? 'Medium' : 'Low';
+  const levelColor = level === 'High' ? 'var(--color-danger)' : level === 'Medium' ? 'var(--color-risky)' : 'var(--color-safe)';
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <svg viewBox="0 0 200 115" className="w-full max-w-[220px]">
+        <path d={arcPath} fill="none" stroke="var(--color-danger)" strokeWidth="14" strokeDasharray={`${dangerLen} ${circumference - dangerLen}`} />
+        <path d={arcPath} fill="none" stroke="var(--color-risky)" strokeWidth="14" strokeDasharray={`${riskyLen} ${circumference - riskyLen}`} strokeDashoffset={-dangerLen} />
+        <path d={arcPath} fill="none" stroke="var(--color-safe)" strokeWidth="14" strokeDasharray={`${safeLen} ${circumference - safeLen}`} strokeDashoffset={-(dangerLen + riskyLen)} />
+        <line x1={cx} y1={cy} x2={needleX} y2={needleY} stroke="var(--color-text)" strokeWidth="3" strokeLinecap="round" />
+        <circle cx={cx} cy={cy} r="5" fill="var(--color-text)" />
+      </svg>
+      <p className="mono-num text-2xl font-bold -mt-4" style={{ color: levelColor }}>{level} Risk</p>
+      <p className="text-xs text-[var(--color-text-faint)]">Overall attendance {percentage}%</p>
+    </div>
   );
 }
 
