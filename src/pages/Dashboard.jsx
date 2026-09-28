@@ -151,8 +151,8 @@ export default function Dashboard() {
       )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        <StatCard tone="safe" icon={GaugeIcon} label="Overall Attendance" value={`${overall.percentage}%`} sub={`${overall.attended}/${overall.conducted} conducted`} donut={pieData} />
-        <StatCard tone="brand" icon={TrendIcon} label="Monthly Attendance" value={`${monthly.percentage}%`} sub={`${monthly.attended}/${monthly.conducted} this month`} />
+        <StatCard tone="safe" icon={GaugeIcon} label="Overall Attendance" value={`${overall.percentage}%`} sub={`${overall.attended}/${overall.conducted} conducted`} donut={pieData} progress={overall.percentage} requiredValue={requiredAttendancePercentage} />
+        <StatCard tone="brand" icon={TrendIcon} label="Monthly Attendance" value={`${monthly.percentage}%`} sub={`${monthly.attended}/${monthly.conducted} this month`} progress={monthly.percentage} requiredValue={requiredAttendancePercentage} />
         <StatCard tone="brand" icon={BookIcon} label="Classes Attended" value={`${overall.attended}/${overall.conducted}`} sub="Keep up the good work." />
         <StatCard tone="danger" icon={BlockIcon} label="Classes Bunked" value={`${overall.bunked}/${overall.conducted}`} sub="Stay within your safe limit." />
         <StatCard tone="risky" icon={ShieldIcon} label="Safe Bunk Limit" value={Number.isFinite(safeBunksRemaining) ? safeBunksRemaining : '∞'} sub="More classes can be bunked" />
@@ -286,7 +286,7 @@ const STAT_TONE_CLASSES = {
   risky: 'bg-[var(--color-risky)]/15 text-[var(--color-risky)]',
 };
 
-function StatCard({ icon: Icon, label, value, sub, tone = 'brand', donut }) {
+function StatCard({ icon: Icon, label, value, sub, tone = 'brand', donut, progress, requiredValue }) {
   return (
     <Card tilt className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
@@ -303,6 +303,7 @@ function StatCard({ icon: Icon, label, value, sub, tone = 'brand', donut }) {
         <p className="text-xs text-[var(--color-text-muted)] font-medium">{label}</p>
         <p className="mono-num text-2xl font-bold mt-1">{value}</p>
       </div>
+      {progress !== undefined && <ProgressBar value={progress} requiredValue={requiredValue} />}
       <p className="text-xs text-[var(--color-text-faint)]">{sub}</p>
     </Card>
   );
