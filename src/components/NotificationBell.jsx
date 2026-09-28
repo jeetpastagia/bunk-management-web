@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../api/client';
 import { onForegroundMessage } from '../lib/firebase';
-import { Badge, Spinner } from './ui';
+import { Spinner } from './ui';
 
 const POLL_INTERVAL_MS = 60_000;
 
@@ -94,8 +94,8 @@ export default function NotificationBell() {
       >
         <BellIcon className="w-4.5 h-4.5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1">
-            <Badge tone="danger">{unreadCount > 9 ? '9+' : unreadCount}</Badge>
+          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--color-danger)] text-white text-[10px] font-bold leading-none flex items-center justify-center">
+            {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>

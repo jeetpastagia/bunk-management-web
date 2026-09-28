@@ -160,7 +160,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6 items-start">
-        <Card className="lg:col-span-2">
+        <Card tilt className="lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display font-semibold">Weekly Attendance Trend</h2>
             <span className="text-xs text-[var(--color-text-faint)]">Cumulative, last 7 days</span>
@@ -168,7 +168,7 @@ export default function Dashboard() {
           <WeeklyTrendChart days={trend} requiredPct={requiredAttendancePercentage} />
         </Card>
 
-        <Card className="lg:col-span-1">
+        <Card tilt className="lg:col-span-1">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display font-semibold">Subject-wise Attendance</h2>
             <Link to="/analytics" className="text-xs text-[var(--color-brand)] hover:underline">View All →</Link>
@@ -242,7 +242,7 @@ export default function Dashboard() {
           </div>
         </Card>
 
-        <Card className="lg:col-span-1">
+        <Card tilt className="lg:col-span-1">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display font-semibold">Recent Notifications</h2>
           </div>
@@ -263,7 +263,7 @@ export default function Dashboard() {
       </div>
 
       {insights.length > 0 && (
-        <Card>
+        <Card tilt>
           <h2 className="font-display font-semibold mb-4">Smart insights</h2>
           <ul className="flex flex-col gap-2.5">
             {insights.map((msg, i) => (
