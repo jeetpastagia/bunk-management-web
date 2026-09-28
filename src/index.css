@@ -60,6 +60,28 @@
   --font-display: "Space Grotesk", sans-serif;
   --font-body: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
+
+  /* ---- Fixed light-text-on-dark-chrome tokens ----
+     --color-sidebar never flips with the light/dark toggle: the sidebar,
+     desktop top bar, and mobile bottom nav all stay this dark color on
+     purpose, in both themes. Everything painted directly on that surface,
+     such as nav labels and the search/install/bell/user-menu triggers,
+     must use these fixed tokens instead of --color-text-muted, --tint-N,
+     or --color-border, which flip to light modes dark-on-light values and
+     would render as near-invisible dark text or borders on this
+     permanently-dark background. Defined only here, never redefined in
+     the light-mode blocks below, so they cannot flip. Keep these in sync
+     with this blocks own --color-text/-muted/-faint whenever the palette
+     changes, since they are a deliberate duplicate rather than a
+     reference to another blocks value. Popups that float off this chrome,
+     such as search results, the notification list, or the user menu, are
+     not scoped to these: they use the normal theme-flipping tokens like
+     every other card, since they visually detach from the dark bar. */
+  --chrome-text: #F4EEE9;
+  --chrome-text-muted: #B8ADA5;
+  --chrome-text-faint: #8A7E76;
+  --chrome-border: rgba(244, 238, 233, 0.14);
+  --chrome-hover: rgba(244, 238, 233, 0.08);
 }
 
 /* "System" while the OS itself prefers light — only when no explicit choice was made. */

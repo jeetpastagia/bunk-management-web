@@ -68,8 +68,16 @@ function ActiveNavIndicator({ containerRef }) {
   );
 }
 
-/** Top-right avatar + name, opening a small dropdown with Settings/Logout — replaces the old sidebar-bottom user block to match the reference's top navbar layout. */
-function UserMenu() {
+/**
+ * Top-right avatar + name, opening a small dropdown with Settings/Logout —
+ * replaces the old sidebar-bottom user block to match the reference's top
+ * navbar layout. Rendered both in the desktop top bar (permanently dark,
+ * `chrome` true) and the mobile row (follows the page's own light/dark
+ * theme, `chrome` false) — only the trigger's classes differ between the
+ * two; the dropdown menu always uses the normal theme-flipping tokens
+ * since it floats as a card over the page, not over the dark bar.
+ */
+function UserMenu({ chrome = false }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -93,13 +101,13 @@ function UserMenu() {
     <div className="relative" ref={containerRef}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2.5 pl-1.5 pr-2 py-1 rounded-xl hover:bg-[var(--tint-5)] transition-colors"
+        className={`flex items-center gap-2.5 pl-1.5 pr-2 py-1 rounded-xl transition-colors ${chrome ? 'hover:bg-[var(--chrome-hover)]' : 'hover:bg-[var(--tint-5)]'}`}
       >
         <div className="w-9 h-9 rounded-full bg-[var(--color-brand)] flex items-center justify-center font-display font-semibold text-sm text-[var(--color-sidebar)]">
           {(user?.studentName || 'U')[0].toUpperCase()}
         </div>
-        <span className="hidden sm:block text-sm font-medium">{user?.studentName?.split(' ')[0] || 'Student'}</span>
-        <ChevronDownIcon className={`w-4 h-4 text-[var(--color-text-muted)] transition-transform ${open ? 'rotate-180' : ''}`} />
+        <span className={`hidden sm:block text-sm font-medium ${chrome ? 'text-[var(--chrome-text)]' : ''}`}>{user?.studentName?.split(' ')[0] || 'Student'}</span>
+        <ChevronDownIcon className={`w-4 h-4 transition-transform ${chrome ? 'text-[var(--chrome-text-muted)]' : 'text-[var(--color-text-muted)]'} ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
@@ -132,7 +140,7 @@ const MAX_SEARCH_RESULTS = 8;
  * mid-session. Selecting a subject deep-links into Analytics and
  * scrolls/highlights that exact subject's card (see Analytics.jsx).
  */
-function GlobalSearch() {
+function GlobalSearch({ chrome = false }) {
   const navigate = useNavigate();
   const [subjects, setSubjects] = useState([]);
   const [value, setValue] = useState('');
@@ -204,7 +212,7 @@ function GlobalSearch() {
 
   return (
     <div className="flex-1 max-w-md relative" ref={containerRef}>
-      <SearchIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--color-text-faint)] pointer-events-none" />
+      <SearchIcon className={`w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none ${chrome ? 'text-[var(--chrome-text-faint)]' : 'text-[var(--color-text-faint)]'}`} />
       <input
         type="search"
         value={value}
@@ -212,7 +220,11 @@ function GlobalSearch() {
         onFocus={() => setOpen(true)}
         onKeyDown={handleKeyDown}
         placeholder="Search subjects, pages…"
-        className="w-full bg-[var(--tint-5)] border border-[var(--color-border)] rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)] transition-colors placeholder:text-[var(--color-text-faint)]"
+        className={`w-full rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)] transition-colors ${
+          chrome
+            ? 'bg-[var(--chrome-hover)] border border-[var(--chrome-border)] text-[var(--chrome-text)] placeholder:text-[var(--chrome-text-faint)]'
+            : 'bg-[var(--tint-5)] border border-[var(--color-border)] placeholder:text-[var(--color-text-faint)]'
+        }`}
       />
 
       {open && value.trim() && (
@@ -247,14 +259,18 @@ function GlobalSearch() {
  * beforeinstallprompt, so there'd be nothing for a button to trigger
  * there; a dead "Install" button is worse than no button.
  */
-function InstallButton() {
+function InstallButton({ chrome = false }) {
   const { canInstall, promptInstall } = useInstallPrompt();
   if (!canInstall) return null;
 
   return (
     <button
       onClick={promptInstall}
-      className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium bg-[var(--tint-5)] hover:bg-[var(--tint-10)] border border-[var(--color-border)] text-[var(--color-text)] transition-colors"
+      className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-colors ${
+        chrome
+          ? 'bg-[var(--chrome-hover)] hover:bg-white/10 border border-[var(--chrome-border)] text-[var(--chrome-text)]'
+          : 'bg-[var(--tint-5)] hover:bg-[var(--tint-10)] border border-[var(--color-border)] text-[var(--color-text)]'
+      }`}
     >
       <DownloadIcon className="w-4 h-4 text-[var(--color-brand)]" />
       <span className="hidden sm:inline">Install app</span>
@@ -267,14 +283,14 @@ export default function AppShell() {
 
   return (
     <div className="min-h-screen flex">
-      <aside className="hidden md:flex w-64 shrink-0 flex-col bg-[var(--color-sidebar)] border-r border-[var(--color-border)] p-5 sticky top-0 h-screen overflow-y-auto">
+      <aside className="hidden md:flex w-64 shrink-0 flex-col bg-[var(--color-sidebar)] border-r border-[var(--chrome-border)] p-5 sticky top-0 h-screen overflow-y-auto">
         <div className="flex items-center gap-2.5 px-1 mb-6">
           <div className="w-9 h-9 rounded-xl bg-[var(--color-brand)] flex items-center justify-center text-[var(--color-sidebar)] shrink-0">
             <CapIcon className="w-5 h-5" />
           </div>
           <div>
-            <div className="font-display font-semibold leading-tight">Bunk Manager</div>
-            <div className="text-[10px] text-[var(--color-text-faint)] tracking-wide">TRACK SMART · BUNK SMARTER</div>
+            <div className="font-display font-semibold leading-tight text-[var(--chrome-text)]">Bunk Manager</div>
+            <div className="text-[10px] text-[var(--chrome-text-faint)] tracking-wide">TRACK SMART · BUNK SMARTER</div>
           </div>
         </div>
 
@@ -287,7 +303,7 @@ export default function AppShell() {
               end={to === '/'}
               className={({ isActive }) =>
                 `relative flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                  isActive ? 'text-[var(--color-sidebar)] font-semibold' : 'text-[var(--color-text-muted)] hover:bg-[var(--tint-5)] hover:text-[var(--color-text)]'
+                  isActive ? 'text-[var(--color-sidebar)] font-semibold' : 'text-[var(--chrome-text-muted)] hover:bg-[var(--chrome-hover)] hover:text-[var(--chrome-text)]'
                 }`
               }
             >
@@ -299,20 +315,20 @@ export default function AppShell() {
 
         <div className="flex-1 min-h-4" />
 
-        <div className="relative overflow-hidden rounded-2xl bg-[var(--color-surface)]/40 border border-[var(--color-border-soft)] p-4 shrink-0">
+        <div className="relative overflow-hidden rounded-2xl bg-white/5 border border-[var(--chrome-border)] p-4 shrink-0">
           <LeafIcon className="absolute -right-3 -bottom-3 w-20 h-20 text-[var(--color-brand)]/15" />
-          <p className="relative font-display font-semibold text-sm leading-snug">Smarter Students<br />Bunk Better.</p>
-          <p className="relative text-[10px] text-[var(--color-text-faint)] mt-1.5 tracking-wide">BUNK MANAGER — TRACK SMART. BUNK SMARTER.</p>
+          <p className="relative font-display font-semibold text-sm leading-snug text-[var(--chrome-text)]">Smarter Students<br />Bunk Better.</p>
+          <p className="relative text-[10px] text-[var(--chrome-text-faint)] mt-1.5 tracking-wide">BUNK MANAGER — TRACK SMART. BUNK SMARTER.</p>
         </div>
       </aside>
 
       <main className="flex-1 min-w-0 flex flex-col">
-        <div className="hidden md:flex items-center gap-4 px-8 py-4 bg-[var(--color-sidebar)] border-b border-[var(--color-border)] sticky top-0 z-20">
-          <GlobalSearch />
+        <div className="hidden md:flex items-center gap-4 px-8 py-4 bg-[var(--color-sidebar)] border-b border-[var(--chrome-border)] sticky top-0 z-20">
+          <GlobalSearch chrome />
           <div className="flex-1" />
-          <InstallButton />
-          <NotificationBell />
-          <UserMenu />
+          <InstallButton chrome />
+          <NotificationBell chrome />
+          <UserMenu chrome />
         </div>
 
         <div className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
@@ -331,7 +347,7 @@ export default function AppShell() {
       </main>
 
       {/* Mobile bottom nav: solid (not glass) so scrolling content behind it never bleeds through, and scrollable so all screens are reachable, not just the first 5. */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--color-sidebar)] border-t border-[var(--color-border)] flex overflow-x-auto py-2 z-20">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--color-sidebar)] border-t border-[var(--chrome-border)] flex overflow-x-auto py-2 z-20">
         {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
@@ -339,7 +355,7 @@ export default function AppShell() {
             end={to === '/'}
             className={({ isActive }) =>
               `flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] font-medium shrink-0 ${
-                isActive ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-faint)]'
+                isActive ? 'text-[var(--color-brand)]' : 'text-[var(--chrome-text-faint)]'
               }`
             }
           >

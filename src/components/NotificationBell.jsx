@@ -15,7 +15,7 @@ function timeAgo(dateString) {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
-export default function NotificationBell() {
+export default function NotificationBell({ chrome = false }) {
   const [open, setOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState(null);
@@ -90,7 +90,11 @@ export default function NotificationBell() {
       <button
         onClick={toggleOpen}
         aria-label="Notifications"
-        className="relative w-10 h-10 rounded-xl bg-[var(--tint-5)] hover:bg-[var(--tint-10)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+        className={`relative w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+          chrome
+            ? 'bg-[var(--chrome-hover)] hover:bg-white/10 border border-[var(--chrome-border)] text-[var(--chrome-text-muted)] hover:text-[var(--chrome-text)]'
+            : 'bg-[var(--tint-5)] hover:bg-[var(--tint-10)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+        }`}
       >
         <BellIcon className="w-4.5 h-4.5" />
         {unreadCount > 0 && (
