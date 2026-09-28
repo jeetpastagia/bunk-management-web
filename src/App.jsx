@@ -1,24 +1,31 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { Spinner } from './components/ui';
 import AppShell from './components/AppShell';
 
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import ForgotPassword from './pages/ForgotPassword';
-import Setup from './pages/Setup';
-import Dashboard from './pages/Dashboard';
-import Subjects from './pages/Subjects';
-import Timetable from './pages/Timetable';
-import Attendance from './pages/Attendance';
-import CalendarPage from './pages/CalendarPage';
-import Analytics from './pages/Analytics';
-import Tools from './pages/Tools';
-import Holidays from './pages/Holidays';
-import Exams from './pages/Exams';
-import Rooms from './pages/Rooms';
-import Settings from './pages/Settings';
+// Lazy-loaded so the very first paint only has to download/parse the
+// current route's code (plus whatever AppShell/context always needs) —
+// previously every page was bundled eagerly into one ~900KB chunk, so
+// opening the site paid for Analytics' recharts and Timetable's OCR
+// engine before you'd even seen the login screen. Each import() becomes
+// its own chunk, fetched only when that route is actually visited.
+const Login = lazy(() => import('./pages/Login'));
+const Signup = lazy(() => import('./pages/Signup'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const Setup = lazy(() => import('./pages/Setup'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Subjects = lazy(() => import('./pages/Subjects'));
+const Timetable = lazy(() => import('./pages/Timetable'));
+const Attendance = lazy(() => import('./pages/Attendance'));
+const CalendarPage = lazy(() => import('./pages/CalendarPage'));
+const Analytics = lazy(() => import('./pages/Analytics'));
+const Tools = lazy(() => import('./pages/Tools'));
+const Holidays = lazy(() => import('./pages/Holidays'));
+const Exams = lazy(() => import('./pages/Exams'));
+const Rooms = lazy(() => import('./pages/Rooms'));
+const Settings = lazy(() => import('./pages/Settings'));
 
 const START_PAGE_PATH = { dashboard: '/', timetable: '/timetable', rooms: '/rooms' };
 
@@ -65,28 +72,30 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <ThemeProvider>
-          <Routes>
-            <Route path="/login" element={<RedirectIfAuthed><Login /></RedirectIfAuthed>} />
-            <Route path="/signup" element={<RedirectIfAuthed><Signup /></RedirectIfAuthed>} />
-            <Route path="/forgot-password" element={<RedirectIfAuthed><ForgotPassword /></RedirectIfAuthed>} />
-            <Route path="/setup" element={<RequireSetup><Setup /></RequireSetup>} />
+          <Suspense fallback={<FullScreenSpinner />}>
+            <Routes>
+              <Route path="/login" element={<RedirectIfAuthed><Login /></RedirectIfAuthed>} />
+              <Route path="/signup" element={<RedirectIfAuthed><Signup /></RedirectIfAuthed>} />
+              <Route path="/forgot-password" element={<RedirectIfAuthed><ForgotPassword /></RedirectIfAuthed>} />
+              <Route path="/setup" element={<RequireSetup><Setup /></RequireSetup>} />
 
-            <Route element={<RequireAuth><AppShell /></RequireAuth>}>
-              <Route path="/" element={<DefaultStartPage><Dashboard /></DefaultStartPage>} />
-              <Route path="/subjects" element={<Subjects />} />
-              <Route path="/timetable" element={<Timetable />} />
-              <Route path="/attendance" element={<Attendance />} />
-              <Route path="/calendar" element={<CalendarPage />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/tools" element={<Tools />} />
-              <Route path="/holidays" element={<Holidays />} />
-              <Route path="/exams" element={<Exams />} />
-              <Route path="/rooms" element={<Rooms />} />
-              <Route path="/settings" element={<Settings />} />
-            </Route>
+              <Route element={<RequireAuth><AppShell /></RequireAuth>}>
+                <Route path="/" element={<DefaultStartPage><Dashboard /></DefaultStartPage>} />
+                <Route path="/subjects" element={<Subjects />} />
+                <Route path="/timetable" element={<Timetable />} />
+                <Route path="/attendance" element={<Attendance />} />
+                <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/tools" element={<Tools />} />
+                <Route path="/holidays" element={<Holidays />} />
+                <Route path="/exams" element={<Exams />} />
+                <Route path="/rooms" element={<Rooms />} />
+                <Route path="/settings" element={<Settings />} />
+              </Route>
 
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
         </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>

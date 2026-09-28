@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { Card, Badge, Spinner, Button, ProgressBar } from '../components/ui';
@@ -46,11 +45,24 @@ export default function Dashboard() {
     load();
   }, []);
 
+  // Patches the clicked lecture's badge instantly (no wait), then only
+  // refreshes the real aggregate numbers via overview() in the background —
+  // previously this called load(), which re-ran overview + insights +
+  // subjects (3 endpoints, including the semester-end achievability scan)
+  // for what should be a single-row status change, and showed nothing
+  // changing until all three came back.
   const mark = async (id, status) => {
     setMarking(id);
     try {
       await api.markLecture(id, status);
-      await load();
+      setData((prev) => prev && ({
+        ...prev,
+        today: { ...prev.today, lectures: prev.today.lectures.map((l) => (l._id === id ? { ...l, status } : l)) },
+      }));
+      const overview = await api.overview();
+      setData(overview);
+    } catch (err) {
+      setError(err.message);
     } finally {
       setMarking(null);
     }
@@ -176,13 +188,7 @@ export default function Dashboard() {
           ) : (
             <div className="flex items-center gap-5">
               <div className="relative w-32 h-32 shrink-0">
-                <ResponsiveContainer>
-                  <PieChart>
-                    <Pie data={pieData} dataKey="value" innerRadius="70%" outerRadius="100%" paddingAngle={2} stroke="none">
-                      {pieData.map((d) => <Cell key={d.name} fill={d.color} />)}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
+                <AttendanceDonut segments={pieData} />
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <span className="mono-num text-xl font-bold">{overall.percentage}%</span>
                   <span className="text-[10px] text-[var(--color-text-faint)]">Overall</span>
@@ -244,6 +250,49 @@ function StatCard({ icon: Icon, label, value, sub, progress, requiredValue }) {
       )}
       {progress !== undefined && <p className="text-xs text-[var(--color-text-faint)] -mt-1.5">{sub}</p>}
     </Card>
+  );
+}
+
+/**
+ * A tiny hand-rolled SVG donut (stroke-dasharray technique) instead of
+ * pulling in recharts just for two arcs — Dashboard is the default landing
+ * page for most users, and recharts' chart engine is a genuinely large
+ * chunk (~270KB) that Analytics still needs for its bar charts, but
+ * Dashboard doesn't need to pay that cost on every first load just to draw
+ * a 2-segment ring.
+ */
+function AttendanceDonut({ segments }) {
+  const size = 128;
+  const strokeWidth = 14;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const total = segments.reduce((sum, d) => sum + d.value, 0) || 1;
+
+  let cumulative = 0;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="var(--chart-track)" strokeWidth={strokeWidth} />
+      {segments.map((d) => {
+        const fraction = d.value / total;
+        const dash = fraction * circumference;
+        const offset = -cumulative * circumference;
+        cumulative += fraction;
+        return (
+          <circle
+            key={d.name}
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke={d.color}
+            strokeWidth={strokeWidth}
+            strokeDasharray={`${dash} ${circumference - dash}`}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+          />
+        );
+      })}
+    </svg>
   );
 }
 

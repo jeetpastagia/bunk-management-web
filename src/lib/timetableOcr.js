@@ -1,6 +1,4 @@
-import { createWorker } from 'tesseract.js';
-
-const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+const DAYS =['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 const DAY_ALIASES = {
   monday: ['mon', 'monday'],
   tuesday: ['tue', 'tues', 'tuesday'],
@@ -35,8 +33,14 @@ function flattenWords(blocks) {
  * the `blocks` output, otherwise `data.words` doesn't exist at all and every
  * upload silently detects 0 words. That was the actual cause behind "Filled
  * in 0 of 0 detected slot(s)" on every photo, not photo quality.
+ *
+ * tesseract.js is dynamically imported here rather than at module scope —
+ * it's a large OCR/WASM engine that's only ever needed if someone actually
+ * clicks "Upload timetable photo", so it shouldn't be part of the cost of
+ * just opening the Timetable page.
  */
 export async function runTimetableOcr(imageFile) {
+  const { createWorker } = await import('tesseract.js');
   const worker = await createWorker('eng');
   try {
     const { data } = await worker.recognize(imageFile, {}, { blocks: true });

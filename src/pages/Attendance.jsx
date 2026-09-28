@@ -38,19 +38,31 @@ export default function Attendance() {
     load(date);
   }, [date]);
 
+  // Patches just the one changed lecture in place instead of calling
+  // load(date) — which set lectures to null first and flashed the whole
+  // list + a full-page spinner for what should be a single-row update.
+  // markLecture's response already has everything needed; no need to
+  // re-fetch the whole day just to reflect one status change.
   const mark = async (id, status) => {
     setMarking(id);
     try {
-      await api.markLecture(id, status);
-      await load(date);
+      const { lecture } = await api.markLecture(id, status);
+      setLectures((prev) => prev.map((l) => (l._id === id ? { ...l, status: lecture.status, markedAt: lecture.markedAt } : l)));
+    } catch (err) {
+      setError(err.message);
     } finally {
       setMarking(null);
     }
   };
 
   const markWholeDay = async (status) => {
-    await api.markDay(date, status);
-    await load(date);
+    setError('');
+    try {
+      const { lectures: updated } = await api.markDay(date, status);
+      setLectures(updated);
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
