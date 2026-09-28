@@ -200,40 +200,44 @@ export default function Dashboard() {
 
       {(isActiveView || historical) && (
       <>
-      {effectiveDanger && (
-        <Card className="border-[var(--color-danger)]/40 bg-[var(--color-danger)]/8">
-          <p className="font-semibold text-[var(--color-danger)]">
-            {selectedSubject ? selectedSubject.subject.name : 'Overall'} attendance is below {viewRequiredPct}%
-          </p>
-          <p className="text-sm text-[var(--color-text-muted)] mt-1">Attend upcoming lectures to avoid warning letters.</p>
-        </Card>
-      )}
-      {!effectiveDanger && isActiveView && !selectedSubjectId && monthlyDanger && (
-        <Card className="border-[var(--color-risky)]/40 bg-[var(--color-risky)]/8">
-          <p className="font-semibold text-[var(--color-risky)]">Monthly attendance has dropped below {requiredAttendancePercentage}%</p>
-          <p className="text-sm text-[var(--color-text-muted)] mt-1">Attend upcoming lectures to avoid warning letters.</p>
-        </Card>
-      )}
+      {(effectiveDanger || (isActiveView && !selectedSubjectId && (monthlyDanger || semesterEndInfo)) ) && (
+        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+          {effectiveDanger && (
+            <Card className="!p-3.5 border-[var(--color-danger)]/40 bg-[var(--color-danger)]/8">
+              <p className="text-sm font-semibold text-[var(--color-danger)]">
+                {selectedSubject ? selectedSubject.subject.name : 'Overall'} attendance is below {viewRequiredPct}%
+              </p>
+              <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Attend upcoming lectures to avoid warning letters.</p>
+            </Card>
+          )}
+          {!effectiveDanger && isActiveView && !selectedSubjectId && monthlyDanger && (
+            <Card className="!p-3.5 border-[var(--color-risky)]/40 bg-[var(--color-risky)]/8">
+              <p className="text-sm font-semibold text-[var(--color-risky)]">Monthly attendance has dropped below {requiredAttendancePercentage}%</p>
+              <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Attend upcoming lectures to avoid warning letters.</p>
+            </Card>
+          )}
 
-      {isActiveView && !selectedSubjectId && semesterEndInfo && !semesterEndInfo.ended && !semesterEndInfo.achievable && (
-        <Card className="border-[var(--color-danger)]/40 bg-[var(--color-danger)]/8">
-          <p className="font-semibold text-[var(--color-danger)]">
-            Reaching {requiredAttendancePercentage}% by your semester end date ({new Date(semesterEndInfo.endDate).toISOString().slice(0, 10)}) is no longer mathematically possible
-          </p>
-          <p className="text-sm text-[var(--color-text-muted)] mt-1">
-            Only {semesterEndInfo.remainingLectures} lecture(s) remain — attending every one still only reaches {semesterEndInfo.bestPossiblePercentage}%. See Smart Tools for the full breakdown.
-          </p>
-        </Card>
-      )}
-      {isActiveView && !selectedSubjectId && semesterEndInfo && !semesterEndInfo.ended && semesterEndInfo.achievable && semesterEndInfo.bestPossiblePercentage - requiredAttendancePercentage < 3 && (
-        <Card className="border-[var(--color-risky)]/40 bg-[var(--color-risky)]/8">
-          <p className="font-semibold text-[var(--color-risky)]">
-            Cutting it close: {requiredAttendancePercentage}% by {new Date(semesterEndInfo.endDate).toISOString().slice(0, 10)} is only reachable if you attend every remaining lecture
-          </p>
-          <p className="text-sm text-[var(--color-text-muted)] mt-1">
-            {semesterEndInfo.remainingLectures} lecture(s) left this term, best case {semesterEndInfo.bestPossiblePercentage}% — missing even one puts the target out of reach.
-          </p>
-        </Card>
+          {isActiveView && !selectedSubjectId && semesterEndInfo && !semesterEndInfo.ended && !semesterEndInfo.achievable && (
+            <Card className="!p-3.5 border-[var(--color-danger)]/40 bg-[var(--color-danger)]/8">
+              <p className="text-sm font-semibold text-[var(--color-danger)]">
+                Reaching {requiredAttendancePercentage}% by {new Date(semesterEndInfo.endDate).toISOString().slice(0, 10)} is no longer mathematically possible
+              </p>
+              <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                Only {semesterEndInfo.remainingLectures} lecture(s) remain — best case {semesterEndInfo.bestPossiblePercentage}%. See Smart Tools.
+              </p>
+            </Card>
+          )}
+          {isActiveView && !selectedSubjectId && semesterEndInfo && !semesterEndInfo.ended && semesterEndInfo.achievable && semesterEndInfo.bestPossiblePercentage - requiredAttendancePercentage < 3 && (
+            <Card className="!p-3.5 border-[var(--color-risky)]/40 bg-[var(--color-risky)]/8">
+              <p className="text-sm font-semibold text-[var(--color-risky)]">
+                Cutting it close: {requiredAttendancePercentage}% by {new Date(semesterEndInfo.endDate).toISOString().slice(0, 10)}
+              </p>
+              <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                {semesterEndInfo.remainingLectures} left, best case {semesterEndInfo.bestPossiblePercentage}% — missing even one puts it out of reach.
+              </p>
+            </Card>
+          )}
+        </div>
       )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
