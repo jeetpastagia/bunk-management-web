@@ -296,6 +296,12 @@ export default function AppShell() {
             </NavLink>
           ))}
         </nav>
+
+        <div className="relative overflow-hidden rounded-2xl bg-[var(--color-surface)]/40 border border-[var(--color-border-soft)] p-4 mt-4">
+          <LeafIcon className="absolute -right-3 -bottom-3 w-20 h-20 text-[var(--color-brand)]/15" />
+          <p className="relative font-display font-semibold text-sm leading-snug">Smarter Students<br />Bunk Better.</p>
+          <p className="relative text-[10px] text-[var(--color-text-faint)] mt-1.5 tracking-wide">BUNK MANAGER — TRACK SMART. BUNK SMARTER.</p>
+        </div>
       </aside>
 
       <main className="flex-1 min-w-0 flex flex-col">
@@ -357,6 +363,7 @@ function LogoutIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke=
 function RoomIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="9" cy="7" r="3.5"/><path d="M20.5 20v-2a4 4 0 0 0-3-3.87M14.5 3.3a3.5 3.5 0 0 1 0 6.7" strokeLinecap="round"/></svg>; }
 function ExamIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" strokeLinejoin="round"/><path d="M14 3v5h5" strokeLinejoin="round"/><path d="M8 12.5h6M8 15.5h8M9 9.5h2" strokeLinecap="round"/></svg>; }
 function CapIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M2 9.5 12 5l10 4.5-10 4.5-10-4.5Z" strokeLinejoin="round"/><path d="M6 11.5V16c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-4.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M21 10v5" strokeLinecap="round"/></svg>; }
+function LeafIcon(props) { return <svg viewBox="0 0 24 24" fill="currentColor" {...props}><path d="M20 4C11 4 4 11 4 20c9 0 16-7 16-16Z" /></svg>; }
 function SearchIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2" strokeLinecap="round"/></svg>; }
 function ChevronDownIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}><path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
 function DownloadIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M12 3v12m0 0 4-4m-4 4-4-4" strokeLinecap="round" strokeLinejoin="round"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" strokeLinecap="round" strokeLinejoin="round"/></svg>; }

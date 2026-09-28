@@ -88,8 +88,9 @@ export default function Dashboard() {
   if (error) return <Card className="text-[var(--color-danger)]">{error}</Card>;
   if (!data) return <div className="flex justify-center py-20"><Spinner size={32} /></div>;
 
-  const { overall, monthly, requiredAttendancePercentage, safeBunksRemaining, today, danger, monthlyDanger, semesterEndInfo } = data;
+  const { overall, requiredAttendancePercentage, safeBunksRemaining, today, danger, monthlyDanger, semesterEndInfo } = data;
   const firstName = user?.studentName?.split(' ')[0] || 'Student';
+  const upcomingToday = today.lectures.filter((l) => l.status === 'pending').length;
 
   const pieData = [
     { name: 'Attended', value: overall.attended, color: 'var(--color-safe)' },
@@ -147,17 +148,49 @@ export default function Dashboard() {
       )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatCard icon={BookIcon} label="Total Subjects" value={subjectCount} sub="This semester" />
-        <StatCard icon={CalendarIcon} label="Classes Today" value={today.lectures.length} sub={`${today.summary.attended} attended so far`} />
-        <StatCard icon={GaugeIcon} label="Overall Attendance" value={`${overall.percentage}%`} sub={`${overall.attended}/${overall.conducted} conducted`} progress={overall.percentage} requiredValue={requiredAttendancePercentage} />
-        <StatCard icon={TrendIcon} label="Monthly Attendance" value={`${monthly.percentage}%`} sub={`${monthly.attended}/${monthly.conducted} this month`} progress={monthly.percentage} requiredValue={requiredAttendancePercentage} />
-        <StatCard icon={ClockIcon} label="Safe Bunks Left" value={Number.isFinite(safeBunksRemaining) ? safeBunksRemaining : '∞'} sub="Across all subjects" />
+        <StatCard tone="safe" icon={GaugeIcon} label="Overall Attendance" value={`${overall.percentage}%`} sub={`${overall.attended}/${overall.conducted} conducted`} donut={pieData} />
+        <StatCard tone="brand" icon={BookIcon} label="Classes Attended" value={`${overall.attended}/${overall.conducted}`} sub="Keep up the good work." />
+        <StatCard tone="danger" icon={BlockIcon} label="Classes Bunked" value={`${overall.bunked}/${overall.conducted}`} sub="Stay within your safe limit." />
+        <StatCard tone="risky" icon={ShieldIcon} label="Safe Bunk Limit" value={Number.isFinite(safeBunksRemaining) ? safeBunksRemaining : '∞'} sub="More classes can be bunked" />
+        <StatCard tone="brand" icon={ClockIcon} label="Upcoming Lectures" value={upcomingToday} sub="Later today" />
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6 items-start">
+        <Card className="lg:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display font-semibold">Weekly Attendance Trend</h2>
+            <span className="text-xs text-[var(--color-text-faint)]">Cumulative, last 7 days</span>
+          </div>
+          <WeeklyTrendChart days={trend} requiredPct={requiredAttendancePercentage} />
+        </Card>
+
+        <Card className="lg:col-span-1">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display font-semibold">Subject-wise Attendance</h2>
+            <Link to="/analytics" className="text-xs text-[var(--color-brand)] hover:underline">View All →</Link>
+          </div>
+          {subjectStats.length === 0 ? (
+            <p className="text-[var(--color-text-muted)] text-sm">No subjects yet.</p>
+          ) : (
+            <div className="flex flex-col gap-3.5">
+              {subjectStats.slice(0, 5).map((s) => (
+                <div key={s.subject.id}>
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <span className="font-medium truncate">{s.subject.name}</span>
+                    <span className="mono-num text-xs text-[var(--color-text-faint)] shrink-0 ml-2">{s.percentage}%</span>
+                  </div>
+                  <ProgressBar value={s.percentage} requiredValue={requiredAttendancePercentage} />
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6 items-start">
         <Card tilt className="lg:col-span-1">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display font-semibold">Today's Classes</h2>
+            <h2 className="font-display font-semibold">Today's Timetable</h2>
             <Link to="/attendance" className="text-xs text-[var(--color-brand)] hover:underline">View All →</Link>
           </div>
           {today.lectures.length === 0 ? (
@@ -196,31 +229,6 @@ export default function Dashboard() {
         </Card>
 
         <Card tilt className="lg:col-span-1">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display font-semibold">Attendance Overview</h2>
-            <span className="text-xs text-[var(--color-text-faint)]">Overall</span>
-          </div>
-          {pieData.length === 0 ? (
-            <p className="text-[var(--color-text-muted)] text-sm">No lectures marked yet.</p>
-          ) : (
-            <div className="flex items-center gap-5">
-              <div className="relative w-32 h-32 shrink-0">
-                <AttendanceDonut segments={pieData} />
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="mono-num text-xl font-bold">{overall.percentage}%</span>
-                  <span className="text-[10px] text-[var(--color-text-faint)]">Overall</span>
-                </div>
-              </div>
-              <div className="flex flex-col gap-2.5 text-sm">
-                <LegendRow color="var(--color-safe)" label="Attended" value={overall.attended} />
-                <LegendRow color="var(--color-danger)" label="Bunked" value={overall.bunked} />
-                <LegendRow color="var(--color-text-faint)" label="Total Classes" value={overall.conducted} />
-              </div>
-            </div>
-          )}
-        </Card>
-
-        <Card tilt className="lg:col-span-1">
           <h2 className="font-display font-semibold mb-4">Quick Actions</h2>
           <div className="grid grid-cols-2 gap-3">
             <QuickAction to="/timetable" icon={CalendarIcon} label="Generate Timetable" />
@@ -229,47 +237,8 @@ export default function Dashboard() {
             <QuickAction to="/analytics" icon={ChartIcon} label="View Reports" />
           </div>
         </Card>
-      </div>
 
-      <div className="grid lg:grid-cols-3 gap-6 items-start">
-        <Card className="lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display font-semibold">Weekly Attendance Trend</h2>
-            <span className="text-xs text-[var(--color-text-faint)]">Cumulative, last 7 days</span>
-          </div>
-          <WeeklyTrendChart days={trend} requiredPct={requiredAttendancePercentage} />
-        </Card>
-
-        <Card className="lg:col-span-1 flex flex-col items-center">
-          <h2 className="font-display font-semibold self-start mb-2">Bunk Risk</h2>
-          <BunkRiskGauge percentage={overall.percentage} requiredPct={requiredAttendancePercentage} />
-        </Card>
-      </div>
-
-      <div className="grid lg:grid-cols-2 gap-6 items-start">
-        <Card>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display font-semibold">Subject-wise Attendance</h2>
-            <Link to="/analytics" className="text-xs text-[var(--color-brand)] hover:underline">View All →</Link>
-          </div>
-          {subjectStats.length === 0 ? (
-            <p className="text-[var(--color-text-muted)] text-sm">No subjects yet.</p>
-          ) : (
-            <div className="flex flex-col gap-3.5">
-              {subjectStats.slice(0, 5).map((s) => (
-                <div key={s.subject.id}>
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="font-medium truncate">{s.subject.name}</span>
-                    <span className="mono-num text-xs text-[var(--color-text-faint)] shrink-0 ml-2">{s.percentage}%</span>
-                  </div>
-                  <ProgressBar value={s.percentage} requiredValue={requiredAttendancePercentage} />
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-
-        <Card>
+        <Card className="lg:col-span-1">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display font-semibold">Recent Notifications</h2>
           </div>
@@ -306,24 +275,31 @@ export default function Dashboard() {
   );
 }
 
-function StatCard({ icon: Icon, label, value, sub, progress, requiredValue }) {
+const STAT_TONE_CLASSES = {
+  safe: 'bg-[var(--color-safe)]/15 text-[var(--color-safe)]',
+  brand: 'bg-[var(--color-brand)]/15 text-[var(--color-brand)]',
+  danger: 'bg-[var(--color-danger)]/15 text-[var(--color-danger)]',
+  risky: 'bg-[var(--color-risky)]/15 text-[var(--color-risky)]',
+};
+
+function StatCard({ icon: Icon, label, value, sub, tone = 'brand', donut }) {
   return (
     <Card tilt className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <div className="w-10 h-10 rounded-xl bg-[var(--tint-8)] flex items-center justify-center text-[var(--color-brand)]">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${STAT_TONE_CLASSES[tone]}`}>
           <Icon className="w-5 h-5" />
         </div>
+        {donut && donut.length > 0 && (
+          <div className="w-11 h-11 shrink-0">
+            <AttendanceDonut segments={donut} size={44} strokeWidth={6} />
+          </div>
+        )}
       </div>
       <div>
         <p className="text-xs text-[var(--color-text-muted)] font-medium">{label}</p>
         <p className="mono-num text-2xl font-bold mt-1">{value}</p>
       </div>
-      {progress !== undefined ? (
-        <ProgressBar value={progress} requiredValue={requiredValue} />
-      ) : (
-        <p className="text-xs text-[var(--color-text-faint)]">{sub}</p>
-      )}
-      {progress !== undefined && <p className="text-xs text-[var(--color-text-faint)] -mt-1.5">{sub}</p>}
+      <p className="text-xs text-[var(--color-text-faint)]">{sub}</p>
     </Card>
   );
 }
@@ -336,9 +312,7 @@ function StatCard({ icon: Icon, label, value, sub, progress, requiredValue }) {
  * Dashboard doesn't need to pay that cost on every first load just to draw
  * a 2-segment ring.
  */
-function AttendanceDonut({ segments }) {
-  const size = 128;
-  const strokeWidth = 14;
+function AttendanceDonut({ segments, size = 128, strokeWidth = 14 }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const total = segments.reduce((sum, d) => sum + d.value, 0) || 1;
@@ -424,58 +398,6 @@ function WeeklyTrendChart({ days, requiredPct }) {
   );
 }
 
-/**
- * Semicircular risk gauge: the arc is split into danger/risky/safe zones at
- * the same requiredPct/+5 cushion used everywhere else (ProgressBar,
- * Analytics, Tools), with a needle pointing at the current overall %.
- * "Risk" is framed as the inverse of attendance health — low % = high risk.
- */
-function BunkRiskGauge({ percentage, requiredPct }) {
-  const cx = 100;
-  const cy = 100;
-  const r = 72;
-  const circumference = Math.PI * r;
-  const dangerEnd = Math.min(100, requiredPct);
-  const riskyEnd = Math.min(100, requiredPct + 5);
-
-  const arcPath = `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`;
-  const dangerLen = (dangerEnd / 100) * circumference;
-  const riskyLen = ((riskyEnd - dangerEnd) / 100) * circumference;
-  const safeLen = circumference - dangerLen - riskyLen;
-
-  const clamped = Math.min(100, Math.max(0, percentage));
-  const angle = Math.PI * (1 - clamped / 100);
-  const needleX = cx + (r - 6) * Math.cos(angle);
-  const needleY = cy - (r - 6) * Math.sin(angle);
-
-  const level = percentage < requiredPct ? 'High' : percentage < requiredPct + 5 ? 'Medium' : 'Low';
-  const levelColor = level === 'High' ? 'var(--color-danger)' : level === 'Medium' ? 'var(--color-risky)' : 'var(--color-safe)';
-
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <svg viewBox="0 0 200 115" className="w-full max-w-[220px]">
-        <path d={arcPath} fill="none" stroke="var(--color-danger)" strokeWidth="14" strokeDasharray={`${dangerLen} ${circumference - dangerLen}`} />
-        <path d={arcPath} fill="none" stroke="var(--color-risky)" strokeWidth="14" strokeDasharray={`${riskyLen} ${circumference - riskyLen}`} strokeDashoffset={-dangerLen} />
-        <path d={arcPath} fill="none" stroke="var(--color-safe)" strokeWidth="14" strokeDasharray={`${safeLen} ${circumference - safeLen}`} strokeDashoffset={-(dangerLen + riskyLen)} />
-        <line x1={cx} y1={cy} x2={needleX} y2={needleY} stroke="var(--color-text)" strokeWidth="3" strokeLinecap="round" />
-        <circle cx={cx} cy={cy} r="5" fill="var(--color-text)" />
-      </svg>
-      <p className="mono-num text-2xl font-bold -mt-4" style={{ color: levelColor }}>{level} Risk</p>
-      <p className="text-xs text-[var(--color-text-faint)]">Overall attendance {percentage}%</p>
-    </div>
-  );
-}
-
-function LegendRow({ color, label, value }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
-      <span className="text-[var(--color-text-muted)]">{label}</span>
-      <span className="mono-num font-semibold ml-auto pl-4">{value}</span>
-    </div>
-  );
-}
-
 function QuickAction({ to, icon: Icon, label }) {
   return (
     <Link
@@ -492,7 +414,8 @@ function BookIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="c
 function CalendarIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3 10h18" strokeLinecap="round"/></svg>; }
 function GaugeIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M4 14a8 8 0 1 1 16 0" strokeLinecap="round"/><path d="M12 14l4-4" strokeLinecap="round"/><circle cx="12" cy="14" r="1.3" fill="currentColor" stroke="none"/></svg>; }
 function ClockIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
-function TrendIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M3 17 9 11l4 4 8-8" strokeLinecap="round" strokeLinejoin="round"/><path d="M15 7h6v6" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
+function BlockIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><circle cx="12" cy="12" r="9"/><path d="m6 6 12 12" strokeLinecap="round"/></svg>; }
+function ShieldIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M12 3 4.5 6v6c0 4.5 3 7.5 7.5 9 4.5-1.5 7.5-4.5 7.5-9V6L12 3Z" strokeLinejoin="round"/><path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
 function BoltIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" strokeLinejoin="round"/></svg>; }
 function ChartIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M4 20V10M12 20V4M20 20v-7" strokeLinecap="round"/></svg>; }
 function RoomIcon(props) { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}><path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="9" cy="7" r="3.5"/><path d="M20.5 20v-2a4 4 0 0 0-3-3.87M14.5 3.3a3.5 3.5 0 0 1 0 6.7" strokeLinecap="round"/></svg>; }
