@@ -2,60 +2,58 @@
 @import "tailwindcss";
 
 @theme {
-  /* ---- Base (dark — premium charcoal + sage, the default look) ---- */
-  --color-bg: #101513;
-  --color-sidebar: #1B2420;
-  --color-surface: #202A26;
-  --color-surface-raised: #28332E;
-  --color-surface-hover: #2E3A34;
-  --color-border: #354039;
-  --color-border-soft: rgba(53, 64, 57, 0.5);
+  /* ---- Base (dark — premium midnight + copper, the default look) ---- */
+  --color-bg: #0D1015;
+  --color-sidebar: #181E27;
+  --color-surface: #222935;
+  --color-surface-raised: #2A3240;
+  --color-surface-hover: #313A49;
+  --color-border: #38414F;
+  --color-border-soft: rgba(56, 65, 79, 0.5);
 
-  /* ---- Brand (sage accent — buttons, active nav, key icons/selections only) ---- */
-  --color-brand: #A7C2B1;
-  --color-brand-soft: #B9D0C2;
-  --color-amber: #A7C2B1;
+  /* ---- Brand (copper accent — buttons, active nav, key icons/selections only) ---- */
+  --color-brand: #D08A63;
+  --color-brand-soft: #DDA582;
+  --color-amber: #D08A63;
 
-  /* ---- Semantic (attendance zones) — the brand accent here is itself a
-     sage GREEN, which would collide with "success" if safe reused it, so
-     safe is a distinctly more saturated/pure green and risky its own warm
-     amber (decoupled from brand for this palette only) so all three stay
-     clearly distinguishable from each other and from the muted sage brand,
-     per the request. */
-  --color-safe: #6FBE82;
-  --color-risky: #D9A24B;
+  /* ---- Semantic (attendance zones) — a real green for safe, the copper
+     accent for risky/warning (legible as text on dark backgrounds), a warm
+     coral-red for danger: distinct hues from each other and from the
+     midnight/copper brand palette. */
+  --color-safe: #8FBF98;
+  --color-risky: #D08A63;
   --color-danger: #E08670;
 
   /* ---- Text ---- */
-  --color-text: #F1F4F2;
-  --color-text-muted: #AAB5AF;
-  --color-text-faint: #7C8981;
+  --color-text: #F2F4F7;
+  --color-text-muted: #AAB1BA;
+  --color-text-faint: #7B828C;
 
   /* ---- Chrome (card surfaces, scrollbar, selection, background) ---- */
   --glass-bg: var(--color-surface);
   --glass-bg-raised: var(--color-surface-raised);
-  --scrollbar-thumb: #354039;
-  --scrollbar-thumb-hover: #435049;
+  --scrollbar-thumb: #38414F;
+  --scrollbar-thumb-hover: #47515F;
   --selection-bg: var(--color-brand);
-  --selection-text: #101513;
+  --selection-text: #0D1015;
   --bg-glow-1: transparent;
   --bg-glow-2: transparent;
 
   /* Subtle neutral overlay tints for panels/hovers on top of --color-surface
      (e.g. bg-[var(--tint-8)]). */
-  --tint-5: rgba(241, 244, 242, 0.04);
-  --tint-6: rgba(241, 244, 242, 0.05);
-  --tint-8: rgba(241, 244, 242, 0.07);
-  --tint-10: rgba(241, 244, 242, 0.09);
-  --tint-12: rgba(241, 244, 242, 0.11);
-  --tint-15: rgba(241, 244, 242, 0.14);
-  --tint-30: rgba(241, 244, 242, 0.28);
+  --tint-5: rgba(242, 244, 247, 0.04);
+  --tint-6: rgba(242, 244, 247, 0.05);
+  --tint-8: rgba(242, 244, 247, 0.07);
+  --tint-10: rgba(242, 244, 247, 0.09);
+  --tint-12: rgba(242, 244, 247, 0.11);
+  --tint-15: rgba(242, 244, 247, 0.14);
+  --tint-30: rgba(242, 244, 247, 0.28);
 
   /* Chart gridlines/axes/tooltips (Recharts — plain inline SVG/style props, not Tailwind classes). */
-  --chart-grid: rgba(53, 64, 57, 0.6);
-  --chart-axis: #354039;
-  --chart-tick: #AAB5AF;
-  --chart-track: #354039;
+  --chart-grid: rgba(56, 65, 79, 0.6);
+  --chart-axis: #38414F;
+  --chart-tick: #AAB1BA;
+  --chart-track: #38414F;
 
   --font-display: "Space Grotesk", sans-serif;
   --font-body: "Inter", sans-serif;
@@ -65,105 +63,100 @@
 /* "System" while the OS itself prefers light — only when no explicit choice was made. */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
-    --color-bg: #F4F5F1;
-    --color-sidebar: #303A36;
+    --color-bg: #F4F2EE;
+    --color-sidebar: #222833;
     --color-surface: #FFFFFF;
     --color-surface-raised: #FFFFFF;
-    --color-surface-hover: #EAEBE6;
-    --color-border: #E1E3DD;
-    --color-border-soft: rgba(31, 41, 37, 0.07);
+    --color-surface-hover: #EBE8E2;
+    --color-border: #E3DFD8;
+    --color-border-soft: rgba(31, 37, 45, 0.07);
 
-    /* --color-brand is the exact given accent (#8FA999) — kept as-is for
+    /* --color-brand is the exact given accent (#B8734F) — kept as-is for
        backgrounds/buttons/active-nav pills, where it sits behind dark text
        or white text and reads fine. Used directly as plain foreground TEXT
-       on this page's white surfaces it only measures ~2.5:1 (WCAG AA needs
-       4.5:1) — the same under-contrast issue fixed for the last few
-       palettes — so --color-brand-soft is a darkened variant for that role
-       (Badge text, links, icons), verified ~5.9:1. Because the accent
-       itself is a sage GREEN, --color-safe/--color-risky are also kept
-       distinctly different hues (a more saturated pure green, and a warm
-       amber-brown) rather than reusing brand, so success/warning stay
-       visually distinguishable from the brand accent, not just from each
-       other. */
-    --color-brand: #8FA999;
-    --color-brand-soft: #4D6B5A;
-    --color-amber: #8FA999;
+       on this page's white surfaces it only measures ~3.75:1 (WCAG AA
+       needs 4.5:1) — the same under-contrast issue fixed for the last few
+       palettes — so --color-brand-soft is a darkened copper for that role
+       (Badge text, links, icons, risky/warning badges), verified ~6.3:1. */
+    --color-brand: #B8734F;
+    --color-brand-soft: #8A5233;
+    --color-amber: #B8734F;
 
-    --color-safe: #2F7D4A;
-    --color-risky: #8F6326;
+    --color-safe: #2F6B41;
+    --color-risky: #8A5233;
     --color-danger: #A8453A;
 
-    --color-text: #1F2925;
-    --color-text-muted: #6E7973;
-    --color-text-faint: #9AA39D;
+    --color-text: #1F252D;
+    --color-text-muted: #6B727A;
+    --color-text-faint: #99A0A7;
 
     --glass-bg: var(--color-surface);
     --glass-bg-raised: var(--color-surface-raised);
-    --scrollbar-thumb: rgba(31, 41, 37, 0.18);
-    --scrollbar-thumb-hover: rgba(31, 41, 37, 0.28);
+    --scrollbar-thumb: rgba(31, 37, 45, 0.18);
+    --scrollbar-thumb-hover: rgba(31, 37, 45, 0.28);
     --selection-bg: var(--color-brand);
     --selection-text: white;
     --bg-glow-1: transparent;
     --bg-glow-2: transparent;
 
-    --tint-5: rgba(31, 41, 37, 0.04);
-    --tint-6: rgba(31, 41, 37, 0.05);
-    --tint-8: rgba(31, 41, 37, 0.06);
-    --tint-10: rgba(31, 41, 37, 0.08);
-    --tint-12: rgba(31, 41, 37, 0.10);
-    --tint-15: rgba(31, 41, 37, 0.13);
-    --tint-30: rgba(31, 41, 37, 0.22);
+    --tint-5: rgba(31, 37, 45, 0.04);
+    --tint-6: rgba(31, 37, 45, 0.05);
+    --tint-8: rgba(31, 37, 45, 0.06);
+    --tint-10: rgba(31, 37, 45, 0.08);
+    --tint-12: rgba(31, 37, 45, 0.10);
+    --tint-15: rgba(31, 37, 45, 0.13);
+    --tint-30: rgba(31, 37, 45, 0.22);
 
-    --chart-grid: rgba(31, 41, 37, 0.10);
-    --chart-axis: rgba(31, 41, 37, 0.18);
-    --chart-tick: #6E7973;
-    --chart-track: rgba(31, 41, 37, 0.12);
+    --chart-grid: rgba(31, 37, 45, 0.10);
+    --chart-axis: rgba(31, 37, 45, 0.18);
+    --chart-tick: #6B727A;
+    --chart-track: rgba(31, 37, 45, 0.12);
   }
 }
 
 /* Explicit "Light" choice always wins, regardless of OS setting. */
 :root[data-theme="light"] {
-  --color-bg: #F4F5F1;
-  --color-sidebar: #303A36;
+  --color-bg: #F4F2EE;
+  --color-sidebar: #222833;
   --color-surface: #FFFFFF;
   --color-surface-raised: #FFFFFF;
-  --color-surface-hover: #EAEBE6;
-  --color-border: #E1E3DD;
-  --color-border-soft: rgba(31, 41, 37, 0.07);
+  --color-surface-hover: #EBE8E2;
+  --color-border: #E3DFD8;
+  --color-border-soft: rgba(31, 37, 45, 0.07);
 
-  --color-brand: #8FA999;
-  --color-brand-soft: #4D6B5A;
-  --color-amber: #8FA999;
+  --color-brand: #B8734F;
+  --color-brand-soft: #8A5233;
+  --color-amber: #B8734F;
 
-  --color-safe: #2F7D4A;
-  --color-risky: #8F6326;
+  --color-safe: #2F6B41;
+  --color-risky: #8A5233;
   --color-danger: #A8453A;
 
-  --color-text: #1F2925;
-  --color-text-muted: #6E7973;
-  --color-text-faint: #9AA39D;
+  --color-text: #1F252D;
+  --color-text-muted: #6B727A;
+  --color-text-faint: #99A0A7;
 
   --glass-bg: var(--color-surface);
   --glass-bg-raised: var(--color-surface-raised);
-  --scrollbar-thumb: rgba(31, 41, 37, 0.18);
-  --scrollbar-thumb-hover: rgba(31, 41, 37, 0.28);
+  --scrollbar-thumb: rgba(31, 37, 45, 0.18);
+  --scrollbar-thumb-hover: rgba(31, 37, 45, 0.28);
   --selection-bg: var(--color-brand);
   --selection-text: white;
   --bg-glow-1: transparent;
   --bg-glow-2: transparent;
 
-  --tint-5: rgba(31, 41, 37, 0.04);
-  --tint-6: rgba(31, 41, 37, 0.05);
-  --tint-8: rgba(31, 41, 37, 0.06);
-  --tint-10: rgba(31, 41, 37, 0.08);
-  --tint-12: rgba(31, 41, 37, 0.10);
-  --tint-15: rgba(31, 41, 37, 0.13);
-  --tint-30: rgba(31, 41, 37, 0.22);
+  --tint-5: rgba(31, 37, 45, 0.04);
+  --tint-6: rgba(31, 37, 45, 0.05);
+  --tint-8: rgba(31, 37, 45, 0.06);
+  --tint-10: rgba(31, 37, 45, 0.08);
+  --tint-12: rgba(31, 37, 45, 0.10);
+  --tint-15: rgba(31, 37, 45, 0.13);
+  --tint-30: rgba(31, 37, 45, 0.22);
 
-  --chart-grid: rgba(31, 41, 37, 0.10);
-  --chart-axis: rgba(31, 41, 37, 0.18);
-  --chart-tick: #6E7973;
-  --chart-track: rgba(31, 41, 37, 0.12);
+  --chart-grid: rgba(31, 37, 45, 0.10);
+  --chart-axis: rgba(31, 37, 45, 0.18);
+  --chart-tick: #6B727A;
+  --chart-track: rgba(31, 37, 45, 0.12);
 }
 
 /* Native browser/OS chrome (the date-input calendar popup, select dropdown
