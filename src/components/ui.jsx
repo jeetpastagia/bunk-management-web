@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { usePointerTilt } from '../hooks/usePointerTilt';
 import { useMagneticHover } from '../hooks/useMagneticHover';
 
@@ -41,6 +42,24 @@ export function Button({ children, variant = 'primary', className = '', magnetic
 }
 
 export function Input({ label, error, className = '', ...props }) {
+  // type="date" is rendered by our own DatePicker instead of the native
+  // <input type="date">, whose calendar popup is drawn by the OS/browser
+  // itself — no CSS (border-radius, fonts, colors, the blue selected-day
+  // highlight) can reach into it, on any platform. Same value/onChange(e)
+  // API as before (onChange still receives something shaped like a native
+  // event, e.target.value still an ISO yyyy-mm-dd string) so every existing
+  // call site works unchanged.
+  if (props.type === 'date') {
+    const { type: _type, value, onChange, min, max, disabled, required, ...rest } = props;
+    return (
+      <label className="flex flex-col gap-1.5 text-base">
+        {label && <span className="text-[var(--color-text-muted)] font-medium">{label}</span>}
+        <DatePicker value={value} onChange={onChange} min={min} max={max} disabled={disabled} required={required} className={className} {...rest} />
+        {error && <span className="text-[var(--color-danger)] text-xs">{error}</span>}
+      </label>
+    );
+  }
+
   return (
     <label className="flex flex-col gap-1.5 text-base">
       {label && <span className="text-[var(--color-text-muted)] font-medium">{label}</span>}
@@ -52,6 +71,179 @@ export function Input({ label, error, className = '', ...props }) {
       />
       {error && <span className="text-[var(--color-danger)] text-xs">{error}</span>}
     </label>
+  );
+}
+
+function toISO(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function fromISO(s) {
+  if (!s) return null;
+  const [y, m, d] = s.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+function sameDay(a, b) {
+  return !!a && !!b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+function buildMonthGrid(year, month) {
+  const first = new Date(year, month, 1);
+  const gridStart = new Date(year, month, 1 - first.getDay());
+  return Array.from({ length: 42 }, (_, i) => {
+    const d = new Date(gridStart);
+    d.setDate(gridStart.getDate() + i);
+    return d;
+  });
+}
+const WEEKDAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+/** Fully custom, themeable calendar dropdown replacing native <input type="date">. */
+function DatePicker({ value, onChange, min, max, disabled, className = '' }) {
+  const [open, setOpen] = useState(false);
+  const selected = fromISO(value);
+  const [viewDate, setViewDate] = useState(() => selected || new Date());
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (selected) setViewDate(selected);
+  }, [value]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
+    };
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [open]);
+
+  const minDate = min ? fromISO(min) : null;
+  const maxDate = max ? fromISO(max) : null;
+  const isOutOfRange = (d) => (minDate && d < minDate) || (maxDate && d > maxDate);
+
+  const emit = (v) => onChange?.({ target: { value: v } });
+  const select = (d) => {
+    if (isOutOfRange(d)) return;
+    emit(toISO(d));
+    setOpen(false);
+  };
+  const clear = () => {
+    emit('');
+    setOpen(false);
+  };
+  const goToday = () => {
+    const t = new Date();
+    if (isOutOfRange(t)) {
+      setViewDate(t);
+      return;
+    }
+    select(t);
+  };
+
+  const days = buildMonthGrid(viewDate.getFullYear(), viewDate.getMonth());
+  const monthLabel = viewDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  const today = new Date();
+
+  return (
+    <div className={`relative ${className}`} ref={containerRef}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between gap-2 bg-[var(--tint-5)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-left outline-none focus:border-[var(--color-brand)] transition-colors disabled:opacity-40 disabled:pointer-events-none"
+      >
+        <span className={selected ? '' : 'text-[var(--color-text-faint)]'}>
+          {selected ? selected.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }) : 'Select date'}
+        </span>
+        <CalendarGlyph className="w-4 h-4 text-[var(--color-text-faint)] shrink-0" />
+      </button>
+
+      {open && (
+        <div className="absolute z-30 mt-2 w-72 glass-raised rounded-2xl p-3.5 shadow-xl">
+          <div className="flex items-center justify-between mb-3">
+            <button
+              type="button"
+              onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))}
+              className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--tint-8)] text-[var(--color-text-muted)] transition-colors"
+            >
+              <ChevronGlyph className="w-4 h-4 rotate-180" />
+            </button>
+            <span className="font-display font-semibold text-sm">{monthLabel}</span>
+            <button
+              type="button"
+              onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))}
+              className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--tint-8)] text-[var(--color-text-muted)] transition-colors"
+            >
+              <ChevronGlyph className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 mb-1">
+            {WEEKDAY_LABELS.map((d) => (
+              <span key={d} className="text-[10px] font-medium text-[var(--color-text-faint)] text-center py-1">{d}</span>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1">
+            {days.map((d) => {
+              const outOfMonth = d.getMonth() !== viewDate.getMonth();
+              const outOfRange = isOutOfRange(d);
+              const isSelected = sameDay(d, selected);
+              const isToday = sameDay(d, today);
+              return (
+                <button
+                  key={toISO(d)}
+                  type="button"
+                  disabled={outOfRange}
+                  onClick={() => select(d)}
+                  className={`h-8 rounded-lg text-xs font-medium mono-num transition-colors ${
+                    isSelected
+                      ? 'bg-[var(--color-brand)] text-white'
+                      : isToday
+                      ? 'border border-[var(--color-brand)] text-[var(--color-brand)]'
+                      : outOfMonth
+                      ? 'text-[var(--color-text-faint)] hover:bg-[var(--tint-8)]'
+                      : 'text-[var(--color-text)] hover:bg-[var(--tint-8)]'
+                  } ${outOfRange ? 'opacity-30 pointer-events-none' : ''}`}
+                >
+                  {d.getDate()}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-[var(--color-border-soft)]">
+            <button type="button" onClick={clear} className="text-xs font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors">Clear</button>
+            <button type="button" onClick={goToday} className="text-xs font-medium text-[var(--color-brand)] hover:underline">Today</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CalendarGlyph(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
+      <rect x="3" y="5" width="18" height="16" rx="2.5" />
+      <path d="M8 3v4M16 3v4M3 10h18" strokeLinecap="round" />
+    </svg>
+  );
+}
+function ChevronGlyph(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <path d="m9 6 6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 

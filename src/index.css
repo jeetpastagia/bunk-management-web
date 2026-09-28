@@ -166,15 +166,16 @@
   --chart-track: rgba(44, 36, 31, 0.12);
 }
 
-/* Native browser/OS chrome (the date-input calendar popup, select dropdown
-   arrows, checkbox/radio ticks, scrollbar hints) is rendered outside the
-   page's DOM and can't be restyled with CSS to match our exact brass/green
-   palette — no website can. `color-scheme` is the one lever the platform
-   gives us: it tells the browser to draw that native chrome using its
-   built-in dark preset instead of always-light, which is what actually
-   fixes the "ugly white calendar popup on a dark page" problem. Tied to
-   the same data-theme attribute as everything else, so it flips with the
-   Settings theme switcher instead of only following the OS. */
+/* Native browser/OS chrome still left in the app (select dropdown arrows,
+   checkbox/radio ticks, scrollbar hints — date inputs now use our own
+   DatePicker in ui.jsx instead of the native calendar popup, precisely
+   because that popup can't be restyled at all) is rendered outside the
+   page's DOM and can't be restyled with CSS to match our exact palette —
+   no website can. `color-scheme` is the one lever the platform gives us:
+   it tells the browser to draw that native chrome using its built-in dark
+   preset instead of always-light. Tied to the same data-theme attribute as
+   everything else, so it flips with the Settings theme switcher instead of
+   only following the OS. */
 :root {
   color-scheme: light dark; /* 'system' with no explicit choice: match the OS, same as the rest of the theme */
 }
