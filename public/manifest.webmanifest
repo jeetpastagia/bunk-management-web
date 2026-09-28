@@ -4,8 +4,8 @@
   "description": "Track Smart. Bunk Smarter.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0D1015",
-  "theme_color": "#181E27",
+  "background_color": "#111518",
+  "theme_color": "#252C31",
   "icons": [
     { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
     { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
