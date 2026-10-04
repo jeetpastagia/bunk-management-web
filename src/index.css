@@ -283,11 +283,11 @@ body {
    a plain semi-opaque fill on browsers that don't support it (old
    Firefox/iOS). */
 .bunk-ai-glass {
-  background: color-mix(in srgb, white 14%, transparent);
-  backdrop-filter: blur(22px) saturate(180%);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
-  border: 1px solid color-mix(in srgb, white 32%, transparent);
-  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.3), inset 0 1px 1px color-mix(in srgb, white 40%, transparent);
+  background: color-mix(in srgb, var(--color-brand) 88%, transparent);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid color-mix(in srgb, white 35%, transparent);
+  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.35), inset 0 1px 1px color-mix(in srgb, white 45%, transparent);
 }
 .bunk-ai-glass-panel {
   background: color-mix(in srgb, var(--color-surface-raised) 40%, transparent);
