@@ -65,16 +65,16 @@ export default function BunkAI() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? 'Close Bunk AI' : 'Open Bunk AI'}
-        className="fixed bottom-20 md:bottom-6 right-5 md:right-6 z-40 w-14 h-14 rounded-full bg-[var(--color-brand)] text-white shadow-xl flex items-center justify-center text-2xl hover:scale-105 active:scale-95 transition-transform btn-glow"
+        className={`fixed top-20 md:top-24 right-4 md:right-6 z-40 w-14 h-14 rounded-full bg-[var(--color-brand)] text-white shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform btn-glow ${open ? '' : 'bunk-ai-float'}`}
       >
-        {open ? '✕' : '✨'}
+        {open ? <CloseIcon className="w-5 h-5" /> : <BunkAIIcon className="w-6 h-6" />}
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 md:inset-auto md:bottom-24 md:right-6 md:w-96 md:max-h-[600px] md:h-[600px] flex flex-col bg-[var(--color-surface-raised)] md:rounded-2xl border border-[var(--color-border)] shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 z-50 md:inset-auto md:top-24 md:right-6 md:w-96 md:max-h-[calc(100vh-7rem)] md:h-[600px] flex flex-col bg-[var(--color-surface-raised)] md:rounded-2xl border border-[var(--color-border)] shadow-2xl overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3.5 border-b border-[var(--chrome-border)] bg-[var(--color-sidebar)] shrink-0">
             <div className="flex items-center gap-2">
-              <span className="text-lg" aria-hidden="true">✨</span>
+              <BunkAIIcon className="w-5 h-5 text-[var(--color-brand)]" />
               <span className="font-display font-semibold text-[var(--chrome-text)]">Bunk AI</span>
             </div>
             <button
@@ -82,7 +82,7 @@ export default function BunkAI() {
               aria-label="Close"
               className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--chrome-text-muted)] hover:bg-[var(--chrome-hover)] hover:text-[var(--chrome-text)] transition-colors"
             >
-              ✕
+              <CloseIcon className="w-4 h-4" />
             </button>
           </div>
 
@@ -158,6 +158,24 @@ function SendIcon(props) {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
       <path d="M22 2 11 13" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M22 2 15 22l-4-9-9-4 20-7Z" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** A chat bubble with a bolt — deliberately not a sparkle/star glyph, which is Gemini's mark. */
+function BunkAIIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8A2.5 2.5 0 0 1 17.5 16H9l-4.5 4v-4h-.5A2.5 2.5 0 0 1 4 13.5v-8Z" strokeLinejoin="round" />
+      <path d="M13 6.5 9 11h3l-1 4.5 4-5.5h-3l1-3.5Z" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function CloseIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <path d="m6 6 12 12M18 6 6 18" strokeLinecap="round" />
     </svg>
   );
 }

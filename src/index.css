@@ -263,6 +263,16 @@ body {
   box-shadow: 0 10px 28px -6px color-mix(in srgb, var(--color-brand) 50%, transparent);
 }
 
+/* Gentle idle bob on the Bunk AI launcher button so it stays noticeable
+   without a user having to find it — stops the moment it's opened (see
+   components/BunkAI.jsx, which only applies this class while closed). */
+@keyframes bunk-ai-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.bunk-ai-float {
+  animation: bunk-ai-float 2.6s ease-in-out infinite;
+}
 
 :focus-visible {
   outline: 2px solid var(--color-brand);

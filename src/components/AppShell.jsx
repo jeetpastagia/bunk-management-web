@@ -7,6 +7,7 @@ import { usePrefersReducedMotion } from '../hooks/useMotionPreferences';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import NotificationBell from './NotificationBell';
 import PageTransition from './PageTransition';
+import BunkAI from './BunkAI';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: GaugeIcon },
@@ -364,6 +365,8 @@ export default function AppShell() {
           </NavLink>
         ))}
       </nav>
+
+      <BunkAI />
     </div>
   );
 }

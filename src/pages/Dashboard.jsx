@@ -4,7 +4,6 @@ import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { Card, Badge, Spinner, Button, ProgressBar, Select } from '../components/ui';
 import { useScrollReveal } from '../hooks/useScrollReveal';
-import BunkAI from '../components/BunkAI';
 
 const STATUS_META = {
   attended: { label: 'Attended', tone: 'safe' },
@@ -379,8 +378,6 @@ export default function Dashboard() {
       )}
       </>
       )}
-
-      <BunkAI />
     </div>
   );
 }
