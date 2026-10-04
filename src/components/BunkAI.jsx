@@ -65,22 +65,22 @@ export default function BunkAI() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? 'Close Bunk AI' : 'Open Bunk AI'}
-        className={`bunk-ai-glass fixed top-1/2 -translate-y-1/2 right-4 md:right-6 z-40 w-14 h-14 rounded-full text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-transform ${open ? '' : 'bunk-ai-float'}`}
+        className={`bunk-ai-glass fixed top-1/2 -translate-y-1/2 right-4 md:right-6 z-40 w-14 h-14 rounded-full text-[var(--color-text)] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform ${open ? '' : 'bunk-ai-float'}`}
       >
         {open ? <CloseIcon className="w-5 h-5" /> : <BunkAIIcon className="w-6 h-6" />}
       </button>
 
       {open && (
         <div className="bunk-ai-glass-panel fixed inset-0 z-50 md:inset-auto md:top-1/2 md:-translate-y-1/2 md:right-24 md:w-96 md:h-[600px] md:max-h-[80vh] flex flex-col md:rounded-2xl shadow-2xl overflow-hidden">
-          <div className="bunk-ai-glass-header flex items-center justify-between px-4 py-3.5 shrink-0">
+          <div className="flex items-center justify-between px-4 py-3.5 border-b border-[var(--color-border-soft)] shrink-0">
             <div className="flex items-center gap-2">
               <BunkAIIcon className="w-5 h-5 text-[var(--color-brand)]" />
-              <span className="font-display font-semibold text-[var(--chrome-text)]">Bunk AI</span>
+              <span className="font-display font-semibold text-[var(--color-text)]">Bunk AI</span>
             </div>
             <button
               onClick={() => setOpen(false)}
               aria-label="Close"
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--chrome-text-muted)] hover:bg-[var(--chrome-hover)] hover:text-[var(--chrome-text)] transition-colors"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--tint-8)] hover:text-[var(--color-text)] transition-colors"
             >
               <CloseIcon className="w-4 h-4" />
             </button>
