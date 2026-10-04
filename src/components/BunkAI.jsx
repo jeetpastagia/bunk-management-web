@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../api/client';
 
 const QUICK_PROMPTS = [
@@ -74,7 +74,7 @@ export default function BunkAI() {
         <div className="bunk-ai-glass-panel fixed inset-0 z-50 md:inset-auto md:top-1/2 md:-translate-y-1/2 md:right-24 md:w-96 md:h-[600px] md:max-h-[80vh] flex flex-col md:rounded-2xl shadow-2xl overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3.5 border-b border-[var(--color-border-soft)] shrink-0">
             <div className="flex items-center gap-2">
-              <BunkAIIcon className="w-5 h-5 text-[var(--color-brand)]" />
+              <BunkAIIcon className="w-5 h-5" fill="var(--color-brand)" />
               <span className="font-display font-semibold text-[var(--color-text)]">Bunk AI</span>
             </div>
             <button
@@ -163,27 +163,11 @@ function SendIcon(props) {
 }
 
 /** A chat bubble with a bolt — deliberately not a sparkle/star glyph, which is Gemini's mark. */
-/**
- * Four-point sparkle with a gradient fill + a soft highlight overlay for a
- * glossy, dimensional look (rather than a flat single-color glyph) —
- * matches the glassmorphism treatment on the button/panel around it. Uses
- * the app's own brand gradient (not a literal copy of any other product's
- * color scheme), so it re-colors automatically with every theme swap.
- * `useId()` keeps the gradient's id collision-free since this icon renders
- * twice at once (launcher + open panel's header).
- */
+/** Plain flat-white four-point sparkle, sitting inside the glass circle/panel for contrast against whatever's blurred behind. */
 function BunkAIIcon(props) {
-  const gradientId = `bunk-ai-sparkle-${useId()}`;
   return (
-    <svg viewBox="0 0 24 24" {...props}>
-      <defs>
-        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="var(--color-brand-soft)" />
-          <stop offset="100%" stopColor="var(--color-brand)" />
-        </linearGradient>
-      </defs>
-      <path d="M12 2c.6 5.6 2.9 7.9 8.5 8.5-5.6.6-7.9 2.9-8.5 8.5-.6-5.6-2.9-7.9-8.5-8.5C9.1 9.9 11.4 7.6 12 2Z" fill={`url(#${gradientId})`} />
-      <path d="M12 2c.3 2.8 1.1 4.6 2.5 5.9-1.7-.5-2.9-.4-3.7.3.2-2.2.6-4 1.2-6.2Z" fill="white" opacity="0.4" />
+    <svg viewBox="0 0 24 24" fill="white" {...props}>
+      <path d="M12 2c.6 5.6 2.9 7.9 8.5 8.5-5.6.6-7.9 2.9-8.5 8.5-.6-5.6-2.9-7.9-8.5-8.5C9.1 9.9 11.4 7.6 12 2Z" />
     </svg>
   );
 }
