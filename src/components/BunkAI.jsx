@@ -65,14 +65,14 @@ export default function BunkAI() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? 'Close Bunk AI' : 'Open Bunk AI'}
-        className={`fixed top-20 md:top-24 right-4 md:right-6 z-40 w-14 h-14 rounded-full bg-[var(--color-brand)] text-white shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform btn-glow ${open ? '' : 'bunk-ai-float'}`}
+        className={`bunk-ai-glass fixed top-1/2 -translate-y-1/2 right-4 md:right-6 z-40 w-14 h-14 rounded-full text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-transform ${open ? '' : 'bunk-ai-float'}`}
       >
         {open ? <CloseIcon className="w-5 h-5" /> : <BunkAIIcon className="w-6 h-6" />}
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 md:inset-auto md:top-24 md:right-6 md:w-96 md:max-h-[calc(100vh-7rem)] md:h-[600px] flex flex-col bg-[var(--color-surface-raised)] md:rounded-2xl border border-[var(--color-border)] shadow-2xl overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3.5 border-b border-[var(--chrome-border)] bg-[var(--color-sidebar)] shrink-0">
+        <div className="bunk-ai-glass-panel fixed inset-0 z-50 md:inset-auto md:top-1/2 md:-translate-y-1/2 md:right-24 md:w-96 md:h-[600px] md:max-h-[80vh] flex flex-col md:rounded-2xl shadow-2xl overflow-hidden">
+          <div className="bunk-ai-glass-header flex items-center justify-between px-4 py-3.5 shrink-0">
             <div className="flex items-center gap-2">
               <BunkAIIcon className="w-5 h-5 text-[var(--color-brand)]" />
               <span className="font-display font-semibold text-[var(--chrome-text)]">Bunk AI</span>
