@@ -174,15 +174,15 @@ function SendIcon(props) {
   );
 }
 
-/** Simplified flat robot-mascot face: antenna + rounded head + two eyes. */
+/** Simplified flat robot-mascot face: antenna + circular head + two round eyes. */
 export function BunkAIIcon(props) {
   return (
     <svg viewBox="0 0 24 24" {...props}>
       <circle cx="12" cy="3" r="1.4" fill="white" />
       <rect x="11.3" y="4.1" width="1.4" height="2.8" rx="0.7" fill="white" />
-      <rect x="3.5" y="6.5" width="17" height="12" rx="6" fill="white" />
-      <rect x="7.6" y="10.8" width="2.6" height="3.4" rx="1.3" fill="var(--color-sidebar)" />
-      <rect x="13.8" y="10.8" width="2.6" height="3.4" rx="1.3" fill="var(--color-sidebar)" />
+      <circle cx="12" cy="13" r="8.5" fill="white" />
+      <circle cx="9" cy="13" r="1.6" fill="var(--color-sidebar)" />
+      <circle cx="15" cy="13" r="1.6" fill="var(--color-sidebar)" />
     </svg>
   );
 }
