@@ -74,7 +74,7 @@ export default function BunkAI() {
         <div className="bunk-ai-glass-panel fixed inset-0 z-50 md:inset-auto md:top-1/2 md:-translate-y-1/2 md:right-24 md:w-96 md:h-[600px] md:max-h-[80vh] flex flex-col md:rounded-2xl shadow-2xl overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3.5 border-b border-[var(--color-border-soft)] shrink-0">
             <div className="flex items-center gap-2">
-              <BunkAIIcon className="w-5 h-5" fill="var(--color-brand)" />
+              <BunkAIIcon className="w-5 h-5" />
               <span className="font-display font-semibold text-[var(--color-text)]">Bunk AI</span>
             </div>
             <button
@@ -164,10 +164,15 @@ function SendIcon(props) {
 
 /** A chat bubble with a bolt — deliberately not a sparkle/star glyph, which is Gemini's mark. */
 /** Plain flat-white four-point sparkle, sitting inside the glass circle/panel for contrast against whatever's blurred behind. */
+/** Simplified flat robot-mascot face: antenna + rounded head + two eyes, standing in for a literal 3D-rendered character. */
 function BunkAIIcon(props) {
   return (
-    <svg viewBox="0 0 24 24" fill="white" {...props}>
-      <path d="M12 2c.6 5.6 2.9 7.9 8.5 8.5-5.6.6-7.9 2.9-8.5 8.5-.6-5.6-2.9-7.9-8.5-8.5C9.1 9.9 11.4 7.6 12 2Z" />
+    <svg viewBox="0 0 24 24" {...props}>
+      <circle cx="12" cy="3" r="1.4" fill="white" />
+      <rect x="11.3" y="4.1" width="1.4" height="2.8" rx="0.7" fill="white" />
+      <rect x="3.5" y="6.5" width="17" height="12" rx="6" fill="white" />
+      <rect x="7.6" y="10.8" width="2.6" height="3.4" rx="1.3" fill="var(--color-sidebar)" />
+      <rect x="13.8" y="10.8" width="2.6" height="3.4" rx="1.3" fill="var(--color-sidebar)" />
     </svg>
   );
 }
