@@ -12,8 +12,8 @@ const QUICK_PROMPTS = [
 const CLOSE_ANIM_MS = 200; // keep in sync with .bunk-ai-panel-exit's duration in index.css
 
 /**
- * Floating chat assistant over the student's own real attendance data.
- * Every number it states comes from the backend calling deterministic
+ * Chat assistant over the student's own real attendance data. Every
+ * number it states comes from the backend calling deterministic
  * attendance-engine functions (see bunk-manager-backend's
  * src/services/aiTools.js) — this component is purely the chat UI, it
  * never computes anything itself, just sends the running message history
@@ -23,9 +23,12 @@ const CLOSE_ANIM_MS = 200; // keep in sync with .bunk-ai-panel-exit's duration i
  * app's theme: Apple-style liquid glass (plain translucent white, strong
  * blur, soft highlights) rather than the app's brand-colored tokens, per
  * an explicit request to redesign only this one UI element.
+ *
+ * Opening/closing is controlled by the parent (AppShell's sidebar/mobile
+ * nav entry) via `open`/`onClose` rather than an internal floating
+ * launcher button — this component only renders the panel itself.
  */
-export default function BunkAI() {
-  const [open, setOpen] = useState(false);
+export default function BunkAI({ open, onClose }) {
   const [closing, setClosing] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -45,8 +48,8 @@ export default function BunkAI() {
   const closePanel = () => {
     setClosing(true);
     setTimeout(() => {
-      setOpen(false);
       setClosing(false);
+      onClose();
     }, CLOSE_ANIM_MS);
   };
 
@@ -75,24 +78,14 @@ export default function BunkAI() {
     }
   };
 
-  return (
-    <>
-      <button
-        onClick={() => (open ? closePanel() : setOpen(true))}
-        aria-label={open ? 'Close Bunk AI' : 'Open Bunk AI'}
-        className={`bunk-ai-glass fixed top-1/2 -translate-y-1/2 right-4 md:right-6 z-40 w-14 h-14 text-[var(--color-text)] flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-200 ease-out ${
-          open ? '' : 'bunk-ai-float'
-        }`}
-      >
-        {open ? <CloseIcon className="w-5 h-5" /> : <BunkAIIcon className="w-6 h-6" />}
-      </button>
+  if (!open && !closing) return null;
 
-      {(open || closing) && (
-        <div
-          className={`bunk-ai-glass-panel fixed inset-0 z-50 md:inset-auto md:top-1/2 md:-translate-y-1/2 md:right-24 md:w-96 md:h-[600px] md:max-h-[80vh] flex flex-col rounded-none md:rounded-[26px] overflow-hidden ${
-            closing ? 'bunk-ai-panel-exit' : 'bunk-ai-panel-enter'
-          }`}
-        >
+  return (
+    <div
+      className={`bunk-ai-glass-panel fixed inset-0 z-50 md:inset-auto md:top-1/2 md:-translate-y-1/2 md:right-6 md:w-96 md:h-[600px] md:max-h-[80vh] flex flex-col rounded-none md:rounded-[26px] overflow-hidden ${
+        closing ? 'bunk-ai-panel-exit' : 'bunk-ai-panel-enter'
+      }`}
+    >
           <div className="relative flex items-center justify-between px-4 py-3.5 border-b border-white/15 shrink-0">
             <div className="flex items-center gap-2">
               <BunkAIIcon className="w-5 h-5" />
@@ -167,10 +160,8 @@ export default function BunkAI() {
             >
               <SendIcon className="w-4 h-4" />
             </button>
-          </div>
-        </div>
-      )}
-    </>
+      </div>
+    </div>
   );
 }
 
@@ -184,7 +175,7 @@ function SendIcon(props) {
 }
 
 /** Simplified flat robot-mascot face: antenna + rounded head + two eyes. */
-function BunkAIIcon(props) {
+export function BunkAIIcon(props) {
   return (
     <svg viewBox="0 0 24 24" {...props}>
       <circle cx="12" cy="3" r="1.4" fill="white" />

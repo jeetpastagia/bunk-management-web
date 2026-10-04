@@ -7,7 +7,7 @@ import { usePrefersReducedMotion } from '../hooks/useMotionPreferences';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import NotificationBell from './NotificationBell';
 import PageTransition from './PageTransition';
-import BunkAI from './BunkAI';
+import BunkAI, { BunkAIIcon } from './BunkAI';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: GaugeIcon },
@@ -281,6 +281,7 @@ function InstallButton({ chrome = false }) {
 
 export default function AppShell() {
   const sidebarNavRef = useRef(null);
+  const [aiOpen, setAiOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex">
@@ -313,6 +314,17 @@ export default function AppShell() {
             </NavLink>
           ))}
         </nav>
+
+        {/* Bunk AI launcher — deliberately bigger icon + its own glass-tinted
+            pill, so it reads as a distinct feature rather than another page
+            link in the list above. */}
+        <button
+          onClick={() => setAiOpen(true)}
+          className="flex items-center gap-3 px-3 py-2.5 mt-2 rounded-xl text-sm font-medium bg-white/5 hover:bg-white/10 border border-[var(--chrome-border)] text-[var(--chrome-text)] transition-colors"
+        >
+          <BunkAIIcon className="w-6 h-6 shrink-0" />
+          Bunk AI
+        </button>
 
         <div className="flex-1 min-h-4" />
 
@@ -364,9 +376,16 @@ export default function AppShell() {
             {label.split(' ')[0]}
           </NavLink>
         ))}
+        <button
+          onClick={() => setAiOpen(true)}
+          className="flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] font-medium shrink-0 text-[var(--chrome-text-faint)]"
+        >
+          <BunkAIIcon className="w-7 h-7" />
+          Bunk AI
+        </button>
       </nav>
 
-      <BunkAI />
+      <BunkAI open={aiOpen} onClose={() => setAiOpen(false)} />
     </div>
   );
 }
