@@ -125,6 +125,9 @@ export const api = {
   unreadNotificationCount: () => request('/notifications/unread-count'),
   markNotificationRead: (id) => request(`/notifications/${id}/read`, { method: 'PATCH' }),
   markAllNotificationsRead: () => request('/notifications/read-all', { method: 'PATCH' }),
+
+  // Bunk AI
+  aiChat: (messages) => request('/ai/chat', { method: 'POST', body: { messages } }),
 };
 
 export function setToken(token, staySignedIn = true) {
