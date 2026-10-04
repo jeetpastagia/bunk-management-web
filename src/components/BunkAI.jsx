@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { api } from '../api/client';
 
 const QUICK_PROMPTS = [
@@ -163,11 +163,27 @@ function SendIcon(props) {
 }
 
 /** A chat bubble with a bolt — deliberately not a sparkle/star glyph, which is Gemini's mark. */
+/**
+ * Four-point sparkle with a gradient fill + a soft highlight overlay for a
+ * glossy, dimensional look (rather than a flat single-color glyph) —
+ * matches the glassmorphism treatment on the button/panel around it. Uses
+ * the app's own brand gradient (not a literal copy of any other product's
+ * color scheme), so it re-colors automatically with every theme swap.
+ * `useId()` keeps the gradient's id collision-free since this icon renders
+ * twice at once (launcher + open panel's header).
+ */
 function BunkAIIcon(props) {
+  const gradientId = `bunk-ai-sparkle-${useId()}`;
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...props}>
-      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8A2.5 2.5 0 0 1 17.5 16H9l-4.5 4v-4h-.5A2.5 2.5 0 0 1 4 13.5v-8Z" strokeLinejoin="round" />
-      <path d="M13 6.5 9 11h3l-1 4.5 4-5.5h-3l1-3.5Z" fill="currentColor" stroke="none" />
+    <svg viewBox="0 0 24 24" {...props}>
+      <defs>
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="var(--color-brand-soft)" />
+          <stop offset="100%" stopColor="var(--color-brand)" />
+        </linearGradient>
+      </defs>
+      <path d="M12 2c.6 5.6 2.9 7.9 8.5 8.5-5.6.6-7.9 2.9-8.5 8.5-.6-5.6-2.9-7.9-8.5-8.5C9.1 9.9 11.4 7.6 12 2Z" fill={`url(#${gradientId})`} />
+      <path d="M12 2c.3 2.8 1.1 4.6 2.5 5.9-1.7-.5-2.9-.4-3.7.3.2-2.2.6-4 1.2-6.2Z" fill="white" opacity="0.4" />
     </svg>
   );
 }
