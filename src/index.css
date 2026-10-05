@@ -263,6 +263,19 @@ body {
   box-shadow: 0 10px 28px -6px color-mix(in srgb, var(--color-brand) 50%, transparent);
 }
 
+/* Fixed dark text for Bunk AI's glass panel — the panel's own background
+   is a near-opaque WHITE fill regardless of the app's light/dark theme
+   (see .bunk-ai-glass-panel below), so text inside it must NOT use the
+   app's normal theme-flipping --color-text tokens: in dark mode those
+   are light-colored, which would be near-invisible on this panel's white
+   background. Same category of bug as the sidebar's --chrome-* tokens,
+   same fix — a fixed color set for a surface that doesn't itself flip. */
+.bunk-ai-glass-panel {
+  --bunk-ai-text: #1c1c1e;
+  --bunk-ai-text-muted: #48484a;
+  --bunk-ai-text-faint: #8e8e93;
+}
+
 /* Apple/iOS-style "liquid glass" — plain translucent white rather than any
    brand tint or color, strong blur so legibility comes from the blur
    itself (not from opacity), a soft light rim, and an inset highlight for
@@ -286,8 +299,10 @@ body {
      the whole panel's layout/visibility. Background is intentionally
      more opaque than the launcher button above — this is the surface
      people actually read chat text on, so it needs to look like a solid
-     frosted pane once open, not a barely-there tint. */
-  background: rgba(255, 255, 255, 0.32);
+     frosted pane once open, not a barely-there tint — bumped again to
+     near-opaque since 0.32 still let page content behind it bleed
+     through and overlap the chat text, making both unreadable. */
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(26px) saturate(160%);
   -webkit-backdrop-filter: blur(26px) saturate(160%);
   border: 1px solid rgba(255, 255, 255, 0.22);
@@ -303,14 +318,14 @@ body {
   pointer-events: none;
 }
 .bunk-ai-glass-bubble {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(14px) saturate(150%);
   -webkit-backdrop-filter: blur(14px) saturate(150%);
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 .bunk-ai-glass-input {
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.55);
   backdrop-filter: blur(14px) saturate(150%);
   -webkit-backdrop-filter: blur(14px) saturate(150%);
   border: 1px solid rgba(255, 255, 255, 0.18);

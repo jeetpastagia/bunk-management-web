@@ -86,15 +86,15 @@ export default function BunkAI({ open, onClose }) {
         closing ? 'bunk-ai-panel-exit' : 'bunk-ai-panel-enter'
       }`}
     >
-          <div className="relative flex items-center justify-between px-4 py-3.5 border-b border-white/15 shrink-0">
+          <div className="relative flex items-center justify-between px-4 py-3.5 border-b border-black/10 shrink-0">
             <div className="flex items-center gap-2">
               <BunkAIIcon className="w-5 h-5" />
-              <span className="font-display font-semibold text-[var(--color-text)]">Bunk AI</span>
+              <span className="font-display font-semibold text-[var(--bunk-ai-text)]">Bunk AI</span>
             </div>
             <button
               onClick={closePanel}
               aria-label="Close"
-              className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-white/10 hover:text-[var(--color-text)] transition-colors duration-150"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--bunk-ai-text-muted)] hover:bg-black/5 hover:text-[var(--bunk-ai-text)] transition-colors duration-150"
             >
               <CloseIcon className="w-4 h-4" />
             </button>
@@ -102,7 +102,7 @@ export default function BunkAI({ open, onClose }) {
 
           <div ref={scrollRef} className="relative flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
             {messages.length === 0 && (
-              <p className="text-sm text-[var(--color-text-muted)]">
+              <p className="text-sm text-[var(--bunk-ai-text-muted)]">
                 Hi! I can see your real attendance data — ask me anything, or try one of these:
               </p>
             )}
@@ -110,7 +110,7 @@ export default function BunkAI({ open, onClose }) {
             {messages.map((m, i) => (
               <div
                 key={i}
-                className={`bunk-ai-glass-bubble bunk-ai-message-pop max-w-[85%] rounded-[20px] px-3.5 py-2.5 text-sm whitespace-pre-wrap leading-relaxed text-[var(--color-text)] ${
+                className={`bunk-ai-glass-bubble bunk-ai-message-pop max-w-[85%] rounded-[20px] px-3.5 py-2.5 text-sm whitespace-pre-wrap leading-relaxed text-[var(--bunk-ai-text)] ${
                   m.role === 'user' ? 'self-end' : 'self-start'
                 }`}
               >
@@ -121,12 +121,12 @@ export default function BunkAI({ open, onClose }) {
             {loading && (
               <div className="bunk-ai-glass-bubble self-start rounded-[20px] px-4 py-3 flex gap-1.5 items-center">
                 {[0, 150, 300].map((delay) => (
-                  <span key={delay} className="w-1.5 h-1.5 rounded-full bg-[var(--color-text-faint)] animate-bounce" style={{ animationDelay: `${delay}ms` }} />
+                  <span key={delay} className="w-1.5 h-1.5 rounded-full bg-[var(--bunk-ai-text-faint)] animate-bounce" style={{ animationDelay: `${delay}ms` }} />
                 ))}
               </div>
             )}
 
-            {error && <p className="text-xs text-[var(--color-danger)]">{error}</p>}
+            {error && <p className="text-xs" style={{ color: '#d32f2f' }}>{error}</p>}
           </div>
 
           <div className="relative px-4 pb-2.5 flex gap-2 overflow-x-auto shrink-0">
@@ -135,14 +135,14 @@ export default function BunkAI({ open, onClose }) {
                 key={p}
                 onClick={() => send(p)}
                 disabled={loading}
-                className="bunk-ai-glass-bubble shrink-0 text-xs px-3 py-1.5 rounded-full text-[var(--color-text)] hover:bg-white/18 transition-colors duration-150 disabled:opacity-40"
+                className="bunk-ai-glass-bubble shrink-0 text-xs px-3 py-1.5 rounded-full text-[var(--bunk-ai-text)] hover:bg-black/5 transition-colors duration-150 disabled:opacity-40"
               >
                 {p}
               </button>
             ))}
           </div>
 
-          <div className="relative flex items-center gap-2 p-3 border-t border-white/15 shrink-0">
+          <div className="relative flex items-center gap-2 p-3 border-t border-black/10 shrink-0">
             <input
               ref={inputRef}
               value={input}
@@ -150,13 +150,13 @@ export default function BunkAI({ open, onClose }) {
               onKeyDown={handleKeyDown}
               placeholder="Ask about your attendance…"
               disabled={loading}
-              className="bunk-ai-glass-input flex-1 rounded-full px-4 py-2.5 text-sm outline-none text-[var(--color-text)] placeholder:text-[var(--color-text-faint)] focus:border-white/40 transition-colors duration-150 disabled:opacity-60"
+              className="bunk-ai-glass-input flex-1 rounded-full px-4 py-2.5 text-sm outline-none text-[var(--bunk-ai-text)] placeholder:text-[var(--bunk-ai-text-faint)] focus:border-black/30 transition-colors duration-150 disabled:opacity-60"
             />
             <button
               onClick={() => send()}
               disabled={loading || !input.trim()}
               aria-label="Send"
-              className="bunk-ai-glass w-10 h-10 text-[var(--color-text)] flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition-all duration-150 disabled:opacity-40"
+              className="bunk-ai-glass w-10 h-10 text-[var(--bunk-ai-text)] flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition-all duration-150 disabled:opacity-40"
             >
               <SendIcon className="w-4 h-4" />
             </button>
