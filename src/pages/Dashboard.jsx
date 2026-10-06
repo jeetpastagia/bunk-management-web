@@ -149,29 +149,20 @@ export default function Dashboard() {
   ].filter((d) => d.value > 0);
 
   return (
-    <div ref={reveal} className="relative flex flex-col gap-6">
-      <div className="dashboard-photo-bg" aria-hidden="true" />
-
-      <div className="dashboard-hero relative z-10 rounded-3xl overflow-hidden p-6 md:p-8 min-h-[200px] flex items-end">
-        <div className="relative z-10 flex items-start justify-between flex-wrap gap-4 w-full">
-          <div>
-            <h1 className="font-display text-3xl font-semibold text-[var(--color-text)]">{timeOfDayGreeting()}, {firstName}!</h1>
-            <p className="text-[var(--color-text-muted)] text-base mt-1.5">Stay on track, manage your classes and never worry about attendance again.</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium text-[var(--color-text)]">{TODAY_LABEL}</p>
-              <p className="text-xs text-[var(--color-text-faint)]">Have a productive day!</p>
-            </div>
-            <Link to="/subjects"><Button className="whitespace-nowrap">+ Add Subject</Button></Link>
-          </div>
+    <div ref={reveal} className="flex flex-col gap-6">
+      <div className="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-semibold">{timeOfDayGreeting()}, {firstName}!</h1>
+          <p className="text-[var(--color-text-muted)] text-base mt-1.5">Stay on track, manage your classes and never worry about attendance again.</p>
         </div>
-        <div className="glass absolute top-5 right-5 z-10 hidden lg:block rounded-2xl px-4 py-3 max-w-[200px]">
-          <p className="text-sm font-medium leading-snug">&ldquo;Discipline today<br />less bunk tomorrow!&rdquo;</p>
+        <div className="flex items-center gap-4">
+          <div className="text-right hidden sm:block">
+            <p className="text-sm font-medium">{TODAY_LABEL}</p>
+            <p className="text-xs text-[var(--color-text-faint)]">Have a productive day!</p>
+          </div>
+          <Link to="/subjects"><Button className="whitespace-nowrap">+ Add Subject</Button></Link>
         </div>
       </div>
-
-      <div className="relative z-10 flex flex-col gap-6">
 
       <div className="flex items-center gap-3 flex-wrap">
         <Select
@@ -387,7 +378,6 @@ export default function Dashboard() {
       )}
       </>
       )}
-      </div>
     </div>
   );
 }
