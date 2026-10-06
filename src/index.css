@@ -41,10 +41,26 @@
   /* Ambient color so glass cards have something with real contrast to
      visibly blur over — strong enough that the glassmorphism actually
      reads, using only the existing brand/safe/risky earth-tone hues (no
-     blue or purple) per the "no neon" design direction. */
+     blue or purple) per the "no neon" design direction. Used on every page
+     except Dashboard, which instead uses the campus-photo background below. */
   --bg-glow-1: rgba(170, 178, 126, 0.26);
   --bg-glow-2: rgba(111, 190, 130, 0.18);
   --bg-glow-3: rgba(217, 162, 75, 0.14);
+
+  /* Dashboard's campus-photo background: a dark wash in dark mode (image
+     "darkened"), near-none in light mode (image stays "bright/natural"),
+     per the explicit per-theme treatment — same photo both themes, only
+     the scrim changes. Fallback gradient (bottom layer in
+     .dashboard-photo-bg, only visible where the photo itself hasn't been
+     added yet at /images/dashboard-campus.jpg) uses the same earth-tone
+     palette as --bg-glow-* so the page still looks intentional either way. */
+  --dashboard-scrim: rgba(10, 8, 6, 0.55);
+  --dashboard-fallback-1: #3a3426;
+  --dashboard-fallback-2: #1d2a1f;
+  /* Hero's own bottom-edge text-contrast gradient — dark mode darkens
+     further (for white hero text), light mode lightens instead (for the
+     dark-navy hero text the reference images use there). */
+  --dashboard-hero-scrim: rgba(0, 0, 0, 0.5);
 
   /* Subtle neutral overlay tints for panels/hovers on top of --color-surface
      (e.g. bg-[var(--tint-8)]). */
@@ -129,6 +145,11 @@
     --bg-glow-2: rgba(47, 125, 74, 0.13);
     --bg-glow-3: rgba(143, 99, 38, 0.1);
 
+    --dashboard-scrim: rgba(255, 253, 248, 0.22);
+    --dashboard-fallback-1: #e8e1cf;
+    --dashboard-fallback-2: #d6e2d2;
+    --dashboard-hero-scrim: rgba(255, 253, 248, 0.6);
+
     --tint-5: rgba(44, 36, 31, 0.04);
     --tint-6: rgba(44, 36, 31, 0.05);
     --tint-8: rgba(44, 36, 31, 0.06);
@@ -186,6 +207,11 @@
   --bg-glow-1: rgba(142, 149, 107, 0.18);
   --bg-glow-2: rgba(47, 125, 74, 0.13);
   --bg-glow-3: rgba(143, 99, 38, 0.1);
+
+  --dashboard-scrim: rgba(255, 253, 248, 0.22);
+  --dashboard-fallback-1: #e8e1cf;
+  --dashboard-fallback-2: #d6e2d2;
+  --dashboard-hero-scrim: rgba(255, 253, 248, 0.6);
 
   --tint-5: rgba(44, 36, 31, 0.04);
   --tint-6: rgba(44, 36, 31, 0.05);
@@ -285,6 +311,44 @@ body {
   background: color-mix(in srgb, var(--color-sidebar) 90%, transparent);
   backdrop-filter: blur(20px) saturate(150%);
   -webkit-backdrop-filter: blur(20px) saturate(150%);
+}
+
+/* Dashboard's campus photo, fixed to the viewport behind every card on
+   that page (not just the hero) so .glass/.glass-raised's backdrop-filter
+   blur picks it up everywhere — the hero card itself stays unblurred so
+   the photo reads sharp there, exactly like the rest of the cards further
+   down blur the SAME image into soft color. One real file drives both
+   looks; no separate hero-only asset needed. Swap in the real photo by
+   adding it at public/images/dashboard-campus.jpg — nothing else to
+   change. Until then, the two gradient layers alone still render a
+   deliberate (not broken-looking) placeholder. */
+.dashboard-photo-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(var(--dashboard-scrim), var(--dashboard-scrim)),
+    url('/images/dashboard-campus.jpg'),
+    linear-gradient(135deg, var(--dashboard-fallback-1), var(--dashboard-fallback-2));
+  background-size: cover, cover, cover;
+  background-position: center, center 35%, center;
+  background-repeat: no-repeat;
+}
+
+/* The hero card itself: transparent (so .dashboard-photo-bg shows through
+   sharp, unblurred, unlike every glass card below it), plus its own
+   bottom-edge scrim so the greeting/date text stays legible over whatever
+   part of the photo happens to sit behind it. Theme-aware via
+   --dashboard-hero-scrim: darkens further in dark mode (hero text is
+   white there), lightens in light mode instead (hero text is dark-navy
+   there, per the reference images — darkening would hurt its contrast). */
+.dashboard-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(0deg, var(--dashboard-hero-scrim) 0%, transparent 85%);
+  pointer-events: none;
 }
 
 .mono-num {
