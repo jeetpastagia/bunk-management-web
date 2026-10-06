@@ -263,31 +263,29 @@ body {
   box-shadow: 0 10px 28px -6px color-mix(in srgb, var(--color-brand) 50%, transparent);
 }
 
-/* Fixed dark text for Bunk AI's glass panel — the panel's own background
-   is a near-opaque WHITE fill regardless of the app's light/dark theme
-   (see .bunk-ai-glass-panel below), so text inside it must NOT use the
-   app's normal theme-flipping --color-text tokens: in dark mode those
-   are light-colored, which would be near-invisible on this panel's white
-   background. Same category of bug as the sidebar's --chrome-* tokens,
-   same fix — a fixed color set for a surface that doesn't itself flip. */
+/* Fixed light text for Bunk AI's glass panel — the panel's own background
+   is a near-opaque DARK NAVY fill regardless of the app's light/dark
+   theme (see .bunk-ai-glass-panel below), so text inside it must NOT use
+   the app's normal theme-flipping --color-text tokens: in light mode
+   those are dark-colored, which would be near-invisible on this panel's
+   dark background. Same category of bug as the sidebar's --chrome-*
+   tokens, same fix — a fixed color set for a surface that doesn't itself
+   flip. */
 .bunk-ai-glass-panel {
-  --bunk-ai-text: #1c1c1e;
-  --bunk-ai-text-muted: #48484a;
-  --bunk-ai-text-faint: #8e8e93;
+  --bunk-ai-text: #f4f4f6;
+  --bunk-ai-text-muted: #c7cad3;
+  --bunk-ai-text-faint: #9093a0;
 }
 
-/* Apple/iOS-style "liquid glass" — plain translucent white rather than any
-   brand tint or color, strong blur so legibility comes from the blur
-   itself (not from opacity), a soft light rim, and an inset highlight for
-   depth. backdrop-filter degrades gracefully to a plain semi-opaque fill
-   on browsers that don't support it (old Firefox/iOS). */
+/* Dark glassmorphism — deep translucent navy, strong blur, a soft
+   purple/blue glow standing in for the old plain-white Apple-glass look.
+   backdrop-filter degrades gracefully to a plain semi-opaque fill on
+   browsers that don't support it (old Firefox/iOS). */
 .bunk-ai-glass {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(26px) saturate(160%);
-  -webkit-backdrop-filter: blur(26px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: linear-gradient(135deg, #7c6cff 0%, #4f8cff 100%);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 9999px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 0 28px rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 28px rgba(99, 102, 241, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 .bunk-ai-glass-panel {
   /* No position here on purpose: Tailwind's `fixed` utility (applied in
@@ -296,39 +294,43 @@ body {
      equal CSS specificity to `.fixed` but came later in this same file's
      source order, so it silently won and overrode `fixed` — turning the
      floating panel into an ordinary in-flow block, which is what broke
-     the whole panel's layout/visibility. Background is intentionally
-     more opaque than the launcher button above — this is the surface
-     people actually read chat text on, so it needs to look like a solid
-     frosted pane once open, not a barely-there tint — bumped again to
-     near-opaque since 0.32 still let page content behind it bleed
-     through and overlap the chat text, making both unreadable. */
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(26px) saturate(160%);
-  -webkit-backdrop-filter: blur(26px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+     the whole panel's layout/visibility. */
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 60px rgba(79, 70, 229, 0.35), 0 0 48px rgba(99, 102, 241, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
-/* Faint top-edge reflection/sheen, the detail that reads as "glass" rather than frosted plastic. */
+/* Faint top-edge reflection/sheen, the detail that reads as "glass" rather than flat plastic. */
 .bunk-ai-glass-panel::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 32%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 32%);
   pointer-events: none;
 }
+/* Assistant messages: transparent dark glass. */
 .bunk-ai-glass-bubble {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(14px) saturate(150%);
   -webkit-backdrop-filter: blur(14px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+/* User messages: purple/blue gradient, always-white text regardless of panel theme tokens. */
+.bunk-ai-bubble-user {
+  background: linear-gradient(135deg, #7c6cff 0%, #4f8cff 100%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  color: #fff;
 }
 .bunk-ai-glass-input {
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(14px) saturate(150%);
   -webkit-backdrop-filter: blur(14px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 @keyframes bunk-ai-panel-in {
