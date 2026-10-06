@@ -269,7 +269,7 @@ function InstallButton({ chrome = false }) {
       onClick={promptInstall}
       className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-colors ${
         chrome
-          ? 'bg-[var(--chrome-hover)] hover:bg-white/10 border border-[var(--chrome-border)] text-[var(--chrome-text)]'
+          ? 'bg-[var(--chrome-hover)] hover:bg-[var(--chrome-border)] border border-[var(--chrome-border)] text-[var(--chrome-text)]'
           : 'bg-[var(--tint-5)] hover:bg-[var(--tint-10)] border border-[var(--color-border)] text-[var(--color-text)]'
       }`}
     >
@@ -285,7 +285,7 @@ export default function AppShell() {
 
   return (
     <div className="min-h-screen flex">
-      <aside className="hidden md:flex w-64 shrink-0 flex-col bg-[var(--color-sidebar)] border-r border-[var(--chrome-border)] p-5 sticky top-0 h-screen overflow-y-auto">
+      <aside className="chrome-glass hidden md:flex w-64 shrink-0 flex-col border-r border-[var(--chrome-border)] p-5 sticky top-0 h-screen overflow-y-auto">
         <div className="flex items-center gap-2.5 px-1 mb-6">
           <div className="w-9 h-9 rounded-xl bg-[var(--color-brand)] flex items-center justify-center text-[var(--color-sidebar)] shrink-0">
             <CapIcon className="w-5 h-5" />
@@ -320,7 +320,7 @@ export default function AppShell() {
             link in the list above. */}
         <button
           onClick={() => setAiOpen(true)}
-          className="flex items-center gap-3 px-3 py-2.5 mt-2 rounded-xl text-sm font-medium bg-white/5 hover:bg-white/10 border border-[var(--chrome-border)] text-[var(--chrome-text)] transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 mt-2 rounded-xl text-sm font-medium bg-[var(--chrome-hover)] hover:bg-[var(--chrome-border)] border border-[var(--chrome-border)] text-[var(--chrome-text)] transition-colors"
         >
           <BunkAIIcon className="w-6 h-6 shrink-0" />
           Bunk AI
@@ -328,7 +328,7 @@ export default function AppShell() {
 
         <div className="flex-1 min-h-4" />
 
-        <div className="relative overflow-hidden rounded-2xl bg-white/5 border border-[var(--chrome-border)] p-4 shrink-0">
+        <div className="relative overflow-hidden rounded-2xl bg-[var(--chrome-hover)] border border-[var(--chrome-border)] p-4 shrink-0">
           <LeafIcon className="absolute -right-3 -bottom-3 w-20 h-20 text-[var(--color-brand)]/15" />
           <p className="relative font-display font-semibold text-sm leading-snug text-[var(--chrome-text)]">Smarter Students<br />Bunk Better.</p>
           <p className="relative text-[10px] text-[var(--chrome-text-faint)] mt-1.5 tracking-wide">BUNK MANAGER — TRACK SMART. BUNK SMARTER.</p>
@@ -336,7 +336,7 @@ export default function AppShell() {
       </aside>
 
       <main className="flex-1 min-w-0 flex flex-col">
-        <div className="hidden md:flex items-center gap-4 px-8 py-4 bg-[var(--color-sidebar)] border-b border-[var(--chrome-border)] sticky top-0 z-20">
+        <div className="chrome-glass hidden md:flex items-center gap-4 px-8 py-4 border-b border-[var(--chrome-border)] sticky top-0 z-20">
           <GlobalSearch chrome />
           <div className="flex-1" />
           <InstallButton chrome />
@@ -360,7 +360,7 @@ export default function AppShell() {
       </main>
 
       {/* Mobile bottom nav: solid (not glass) so scrolling content behind it never bleeds through, and scrollable so all screens are reachable, not just the first 5. */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--color-sidebar)] border-t border-[var(--chrome-border)] flex overflow-x-auto py-2 z-20">
+      <nav className="chrome-glass md:hidden fixed bottom-0 left-0 right-0 border-t border-[var(--chrome-border)] flex overflow-x-auto py-2 z-20">
         {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}

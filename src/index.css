@@ -38,8 +38,11 @@
   --scrollbar-thumb-hover: #5E4C41;
   --selection-bg: var(--color-brand);
   --selection-text: #15110F;
-  --bg-glow-1: transparent;
-  --bg-glow-2: transparent;
+  /* Faint ambient color so glass cards have something to blur over — kept
+     deliberately subtle (low alpha, brand/safe-green hues only, no blue or
+     purple) per the "no neon" design direction. */
+  --bg-glow-1: rgba(170, 178, 126, 0.07);
+  --bg-glow-2: rgba(111, 190, 130, 0.05);
 
   /* Subtle neutral overlay tints for panels/hovers on top of --color-surface
      (e.g. bg-[var(--tint-8)]). */
@@ -61,22 +64,17 @@
   --font-body: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
-  /* ---- Fixed light-text-on-dark-chrome tokens ----
-     --color-sidebar never flips with the light/dark toggle: the sidebar,
-     desktop top bar, and mobile bottom nav all stay this dark color on
-     purpose, in both themes. Everything painted directly on that surface,
-     such as nav labels and the search/install/bell/user-menu triggers,
-     must use these fixed tokens instead of --color-text-muted, --tint-N,
-     or --color-border, which flip to light modes dark-on-light values and
-     would render as near-invisible dark text or borders on this
-     permanently-dark background. Defined only here, never redefined in
-     the light-mode blocks below, so they cannot flip. Keep these in sync
-     with this blocks own --color-text/-muted/-faint whenever the palette
-     changes, since they are a deliberate duplicate rather than a
-     reference to another blocks value. Popups that float off this chrome,
+  /* ---- Chrome tokens for the sidebar/top bar/mobile nav ----
+     --color-sidebar now flips with the light/dark toggle (white/off-white
+     glass in light mode, dark glass in dark mode, per the glassmorphism
+     redesign), so --chrome-* is redefined to match in both light-mode
+     blocks below rather than staying frozen as it did previously. Kept as
+     its own duplicate set (not a reference to --color-text/-muted/-faint)
+     only so the chrome surface's palette can be tuned independently of
+     ordinary card text if ever needed. Popups that float off this chrome,
      such as search results, the notification list, or the user menu, are
      not scoped to these: they use the normal theme-flipping tokens like
-     every other card, since they visually detach from the dark bar. */
+     every other card, since they visually detach from the bar. */
   --chrome-text: #F4EEE9;
   --chrome-text-muted: #B8ADA5;
   --chrome-text-faint: #8A7E76;
@@ -125,8 +123,8 @@
     --scrollbar-thumb-hover: rgba(44, 36, 31, 0.28);
     --selection-bg: var(--color-brand);
     --selection-text: white;
-    --bg-glow-1: transparent;
-    --bg-glow-2: transparent;
+    --bg-glow-1: rgba(142, 149, 107, 0.06);
+    --bg-glow-2: rgba(47, 125, 74, 0.04);
 
     --tint-5: rgba(44, 36, 31, 0.04);
     --tint-6: rgba(44, 36, 31, 0.05);
@@ -140,6 +138,17 @@
     --chart-axis: rgba(44, 36, 31, 0.18);
     --chart-tick: #756B64;
     --chart-track: rgba(44, 36, 31, 0.12);
+
+    /* Sidebar/navbar/mobile-nav flip to white/off-white glass in light
+       mode, per the updated design direction (previously this surface was
+       deliberately fixed-dark in every theme — see --chrome-* note below,
+       which now documents this new flipping behavior instead). */
+    --color-sidebar: #FFFFFF;
+    --chrome-text: #2C241F;
+    --chrome-text-muted: #756B64;
+    --chrome-text-faint: #A79C93;
+    --chrome-border: rgba(44, 36, 31, 0.1);
+    --chrome-hover: rgba(44, 36, 31, 0.06);
   }
 }
 
@@ -171,8 +180,8 @@
   --scrollbar-thumb-hover: rgba(44, 36, 31, 0.28);
   --selection-bg: var(--color-brand);
   --selection-text: white;
-  --bg-glow-1: transparent;
-  --bg-glow-2: transparent;
+  --bg-glow-1: rgba(142, 149, 107, 0.06);
+  --bg-glow-2: rgba(47, 125, 74, 0.04);
 
   --tint-5: rgba(44, 36, 31, 0.04);
   --tint-6: rgba(44, 36, 31, 0.05);
@@ -186,6 +195,13 @@
   --chart-axis: rgba(44, 36, 31, 0.18);
   --chart-tick: #756B64;
   --chart-track: rgba(44, 36, 31, 0.12);
+
+  --color-sidebar: #FFFFFF;
+  --chrome-text: #2C241F;
+  --chrome-text-muted: #756B64;
+  --chrome-text-faint: #A79C93;
+  --chrome-border: rgba(44, 36, 31, 0.1);
+  --chrome-hover: rgba(44, 36, 31, 0.06);
 }
 
 /* Native browser/OS chrome still left in the app (select dropdown arrows,
@@ -229,16 +245,35 @@ body {
   color: var(--selection-text);
 }
 
+/* True glassmorphism: translucent fill (color-mix keeps this automatically
+   theme-correct without duplicating alpha values per theme block) + blur so
+   the faint --bg-glow ambiance behind shows through softly, a subtle 1px
+   border, and a plain soft shadow — no colored "glow" shadow, per the
+   no-neon/no-glow design direction. */
 .glass {
-  background: var(--glass-bg);
-  border: 1px solid var(--color-border);
-  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.25);
+  background: color-mix(in srgb, var(--glass-bg) 72%, transparent);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--color-border-soft);
+  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.2);
 }
 
 .glass-raised {
-  background: var(--glass-bg-raised);
-  border: 1px solid var(--color-border);
-  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.3);
+  background: color-mix(in srgb, var(--glass-bg-raised) 80%, transparent);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border: 1px solid var(--color-border-soft);
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.26);
+}
+
+/* Same glass treatment for the sidebar/top bar/mobile nav, kept more
+   opaque than ordinary cards (mobile nav in particular sits over
+   scrolling page content, so it needs to stay legible rather than let
+   that content bleed through). */
+.chrome-glass {
+  background: color-mix(in srgb, var(--color-sidebar) 90%, transparent);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
 }
 
 .mono-num {
@@ -263,29 +298,22 @@ body {
   box-shadow: 0 10px 28px -6px color-mix(in srgb, var(--color-brand) 50%, transparent);
 }
 
-/* Fixed light text for Bunk AI's glass panel — the panel's own background
-   is a near-opaque DARK NAVY fill regardless of the app's light/dark
-   theme (see .bunk-ai-glass-panel below), so text inside it must NOT use
-   the app's normal theme-flipping --color-text tokens: in light mode
-   those are dark-colored, which would be near-invisible on this panel's
-   dark background. Same category of bug as the sidebar's --chrome-*
-   tokens, same fix — a fixed color set for a surface that doesn't itself
-   flip. */
-.bunk-ai-glass-panel {
-  --bunk-ai-text: #f4f4f6;
-  --bunk-ai-text-muted: #c7cad3;
-  --bunk-ai-text-faint: #9093a0;
-}
-
-/* Dark glassmorphism — deep translucent navy, strong blur, a soft
-   purple/blue glow standing in for the old plain-white Apple-glass look.
-   backdrop-filter degrades gracefully to a plain semi-opaque fill on
-   browsers that don't support it (old Firefox/iOS). */
+/* Bunk AI now shares the app's normal theme-flipping glass tokens instead
+   of a bespoke fixed-dark-navy panel — dark glass in dark mode, white/
+   off-white glass in light mode, exactly like every other card — so no
+   separate --bunk-ai-text-* set is needed any more; it uses --color-text
+   directly like everything else. The send button and the user's own
+   message bubble use solid --color-brand (not a purple/blue gradient) per
+   the no-neon design direction, with --color-sidebar as the text color on
+   top of it — the same trick the sidebar's active-nav pill already uses,
+   since --color-sidebar is dark in dark mode (readable on the light-olive
+   brand fill) and white in light mode (readable on the darker-olive brand
+   fill), automatically correct in both themes. */
 .bunk-ai-glass {
-  background: linear-gradient(135deg, #7c6cff 0%, #4f8cff 100%);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: var(--color-brand);
+  border: 1px solid var(--color-border-soft);
   border-radius: 9999px;
-  box-shadow: 0 10px 28px rgba(99, 102, 241, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.3);
 }
 .bunk-ai-glass-panel {
   /* No position here on purpose: Tailwind's `fixed` utility (applied in
@@ -295,12 +323,11 @@ body {
      source order, so it silently won and overrode `fixed` — turning the
      floating panel into an ordinary in-flow block, which is what broke
      the whole panel's layout/visibility. */
-  background: rgba(15, 23, 42, 0.72);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 20px 60px rgba(79, 70, 229, 0.35), 0 0 48px rgba(99, 102, 241, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--glass-bg-raised) 85%, transparent);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border: 1px solid var(--color-border-soft);
+  box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 /* Faint top-edge reflection/sheen, the detail that reads as "glass" rather than flat plastic. */
 .bunk-ai-glass-panel::before {
@@ -308,29 +335,27 @@ body {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 32%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 32%);
   pointer-events: none;
 }
-/* Assistant messages: transparent dark glass. */
+/* Assistant messages: transparent glass, theme-aware. */
 .bunk-ai-glass-bubble {
-  background: rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--glass-bg) 65%, transparent);
   backdrop-filter: blur(14px) saturate(150%);
   -webkit-backdrop-filter: blur(14px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-border-soft);
 }
-/* User messages: purple/blue gradient, always-white text regardless of panel theme tokens. */
+/* User's own messages: solid brand fill, no gradient. */
 .bunk-ai-bubble-user {
-  background: linear-gradient(135deg, #7c6cff 0%, #4f8cff 100%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  color: #fff;
+  background: var(--color-brand);
+  color: var(--color-sidebar);
+  border: 1px solid var(--color-border-soft);
 }
 .bunk-ai-glass-input {
-  background: rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--glass-bg) 55%, transparent);
   backdrop-filter: blur(14px) saturate(150%);
   -webkit-backdrop-filter: blur(14px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--color-border-soft);
 }
 
 @keyframes bunk-ai-panel-in {
