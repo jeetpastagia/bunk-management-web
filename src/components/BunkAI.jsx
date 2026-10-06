@@ -86,15 +86,15 @@ export default function BunkAI({ open, onClose }) {
         closing ? 'bunk-ai-panel-exit' : 'bunk-ai-panel-enter'
       }`}
     >
-          <div className="relative flex items-center justify-between px-4 py-3.5 border-b border-[var(--color-border-soft)] shrink-0">
+          <div className="relative flex items-center justify-between px-4 py-3.5 border-b border-white/10 shrink-0">
             <div className="flex items-center gap-2">
               <BunkAIIcon className="w-5 h-5" />
-              <span className="font-display font-semibold text-[var(--color-text)]">Bunk AI</span>
+              <span className="font-display font-semibold text-[var(--bunk-ai-text)]">Bunk AI</span>
             </div>
             <button
               onClick={closePanel}
               aria-label="Close"
-              className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--tint-10)] hover:text-[var(--color-text)] transition-colors duration-150"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--bunk-ai-text-muted)] hover:bg-white/10 hover:text-[var(--bunk-ai-text)] transition-colors duration-150"
             >
               <CloseIcon className="w-4 h-4" />
             </button>
@@ -102,7 +102,7 @@ export default function BunkAI({ open, onClose }) {
 
           <div ref={scrollRef} className="relative flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
             {messages.length === 0 && (
-              <p className="text-sm text-[var(--color-text-muted)]">
+              <p className="text-sm text-[var(--bunk-ai-text-muted)]">
                 Hi! I can see your real attendance data — ask me anything, or try one of these:
               </p>
             )}
@@ -113,7 +113,7 @@ export default function BunkAI({ open, onClose }) {
                 className={`bunk-ai-message-pop max-w-[85%] rounded-[20px] px-3.5 py-2.5 text-sm whitespace-pre-wrap leading-relaxed ${
                   m.role === 'user'
                     ? 'bunk-ai-bubble-user self-end'
-                    : 'bunk-ai-glass-bubble self-start text-[var(--color-text)]'
+                    : 'bunk-ai-glass-bubble self-start text-[var(--bunk-ai-text)]'
                 }`}
               >
                 {m.content}
@@ -123,12 +123,12 @@ export default function BunkAI({ open, onClose }) {
             {loading && (
               <div className="bunk-ai-glass-bubble self-start rounded-[20px] px-4 py-3 flex gap-1.5 items-center">
                 {[0, 150, 300].map((delay) => (
-                  <span key={delay} className="w-1.5 h-1.5 rounded-full bg-[var(--color-text-faint)] animate-bounce" style={{ animationDelay: `${delay}ms` }} />
+                  <span key={delay} className="w-1.5 h-1.5 rounded-full bg-[var(--bunk-ai-text-faint)] animate-bounce" style={{ animationDelay: `${delay}ms` }} />
                 ))}
               </div>
             )}
 
-            {error && <p className="text-xs" style={{ color: 'var(--color-danger)' }}>{error}</p>}
+            {error && <p className="text-xs" style={{ color: '#ff8a8a' }}>{error}</p>}
           </div>
 
           <div className="relative px-4 pb-2.5 flex gap-2 overflow-x-auto shrink-0">
@@ -137,14 +137,14 @@ export default function BunkAI({ open, onClose }) {
                 key={p}
                 onClick={() => send(p)}
                 disabled={loading}
-                className="bunk-ai-glass-bubble shrink-0 text-xs px-3 py-1.5 rounded-full text-[var(--color-text)] hover:bg-[var(--tint-10)] transition-colors duration-150 disabled:opacity-40"
+                className="bunk-ai-glass-bubble shrink-0 text-xs px-3 py-1.5 rounded-full text-[var(--bunk-ai-text)] hover:bg-white/10 transition-colors duration-150 disabled:opacity-40"
               >
                 {p}
               </button>
             ))}
           </div>
 
-          <div className="relative flex items-center gap-2 p-3 border-t border-[var(--color-border-soft)] shrink-0">
+          <div className="relative flex items-center gap-2 p-3 border-t border-white/10 shrink-0">
             <input
               ref={inputRef}
               value={input}
@@ -152,13 +152,13 @@ export default function BunkAI({ open, onClose }) {
               onKeyDown={handleKeyDown}
               placeholder="Ask about your attendance…"
               disabled={loading}
-              className="bunk-ai-glass-input flex-1 rounded-full px-4 py-2.5 text-sm outline-none text-[var(--color-text)] placeholder:text-[var(--color-text-faint)] focus:border-[var(--color-brand)]/50 transition-colors duration-150 disabled:opacity-60"
+              className="bunk-ai-glass-input flex-1 rounded-full px-4 py-2.5 text-sm outline-none text-[var(--bunk-ai-text)] placeholder:text-[var(--bunk-ai-text-faint)] focus:border-white/30 transition-colors duration-150 disabled:opacity-60"
             />
             <button
               onClick={() => send()}
               disabled={loading || !input.trim()}
               aria-label="Send"
-              className="bunk-ai-glass w-10 h-10 text-[var(--color-sidebar)] flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition-all duration-150 disabled:opacity-40"
+              className="bunk-ai-glass w-10 h-10 text-white flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition-all duration-150 disabled:opacity-40"
             >
               <SendIcon className="w-4 h-4" />
             </button>
@@ -180,9 +180,9 @@ function SendIcon(props) {
 export function BunkAIIcon(props) {
   return (
     <svg viewBox="0 0 24 24" {...props}>
-      <circle cx="12" cy="3" r="1.4" fill="var(--color-brand)" />
-      <rect x="11.3" y="4.1" width="1.4" height="2.8" rx="0.7" fill="var(--color-brand)" />
-      <circle cx="12" cy="13" r="8.5" fill="var(--color-brand)" />
+      <circle cx="12" cy="3" r="1.4" fill="white" />
+      <rect x="11.3" y="4.1" width="1.4" height="2.8" rx="0.7" fill="white" />
+      <circle cx="12" cy="13" r="8.5" fill="white" />
       <circle cx="9" cy="13" r="1.6" fill="var(--color-sidebar)" />
       <circle cx="15" cy="13" r="1.6" fill="var(--color-sidebar)" />
     </svg>
